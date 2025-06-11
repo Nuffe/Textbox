@@ -1,4 +1,8 @@
-# Textbox
-My try at making a basic text editor
+# Textbox 
 
-Lets begin with making myself familiar with git in the terminal again
+# Things to add
+
+# blinking cursor location
+# able for multiple lines 
+# navigate the lines
+# gap buffer
