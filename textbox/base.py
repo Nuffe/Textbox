@@ -1,7 +1,8 @@
+import time
 import pygame
 
 pygame.init()
-screen = pygame.display.set_mode((400, 300))
+screen = pygame.display.set_mode((1000, 600))
 font = pygame.font.SysFont(None, 36)
 clock = pygame.time.Clock()
 textInput = []
@@ -26,12 +27,17 @@ while running:
                 keyPressed = pygame.key.name(event.key)
                 textInput.append(keyPressed)
 
+
     # keyboard event handling
     keys = pygame.key.get_pressed()
     if keys[pygame.K_ESCAPE]:
         running = False
     
     screen.fill((30, 30, 30))
+    
+    if time.time() % 1.2 > 0.6:
+        cursor = pygame.draw.rect(screen, (50, 255, 255), (50, 50, 3, 20))
+    
     if len(textInput) > 0:
         textOutput = ''.join(textInput)
         key = font.render(textOutput, True, (255, 255, 255))
