@@ -3,31 +3,36 @@ class gapBuffer:
     def __init__(self, size):
         self.size = size
         self.gap_size = 5
-        self.buffer = ['_' for i in range(size)]
+        self.buffer = [' ' for i in range(size)]
         self.gap_start = 0
-        self.gap_end = self.gap_size - self.gap_start -1
+        self.gap_end = self.gap_size - self.gap_start
         print(self.buffer)
 
+    def grow(self, growthSize: int, position):
+       # self.buffer[self.gap_start : self.gap_start] = [' '] * growthSize
+        #self.gap_end += growthSize
+        #self.gap_size += growthSize
 
-    def grow(self, k: int):
-        self.buffer[self.gap_start : self.gap_start] = [''] * k
-        self.gap_end += k
-        self.gap_size += k
+        a = self.buffer[position:self.size]
+        self.buffer[position:position+growthSize] = ['_' for i in range(growthSize)]
+        self.buffer[position+growthSize:position+growthSize+ self.size - position] = a
 
+        self.size += growthSize
+        self.gap_end += growthSize
 
     def right(self, position):
         while position > self.gap_start:
             self.gap_start += 1
             self.gap_end   += 1
-            self.buffer[self.gap_start -1] = self.buffer[self.gap_end]
-            self.buffer[self.gap_end] = ''
+            self.buffer[self.gap_start] = self.buffer[self.gap_end]
+            self.buffer[self.gap_end] = ' '
 
     def left(self, position):
          while position < self.gap_start:
             self.gap_end   -= 1
             self.gap_start -= 1  
-            self.buffer[self.gap_end +1] = self.buffer[self.gap_start]
-            self.buffer[self.gap_start] = ''
+            self.buffer[self.gap_end ] = self.buffer[self.gap_start]
+            self.buffer[self.gap_start] = ' '
 
     def move_position(self, position):
         if position < self.gap_start:
@@ -38,10 +43,10 @@ class gapBuffer:
     def insert(self, position, character):
 
         if self.gap_end == self.gap_start:
-            self.grow(10)
+            self.grow(5, position)
             
         self.move_position(position)
-        self.buffer[position] = character
+        self.buffer[self.gap_start] = character
         self.gap_start += 1
         self.gap_size -= 1
 
@@ -56,16 +61,9 @@ class gapBuffer:
 
 
 buffer = gapBuffer(10)
-buffer.insert(0, 'C')
-buffer.insert(1, 'a')
-buffer.insert(2, 'l')
-buffer.insert(3, '*')
-buffer.insert(4, 'p')
-buffer.insert(5, 'a')
-buffer.insert(6, 'u')
-buffer.insert(2, 'r')
-buffer.insert(2, 'r')
-buffer.insert(2, 'r')
+
+
+
 print(buffer)
 
 
