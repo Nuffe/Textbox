@@ -3,18 +3,14 @@ class gapBuffer:
     def __init__(self, size):
         self.size = size
         self.gap_size = 5
-        self.buffer = [' ' for i in range(size)]
+        self.buffer = ['']*5
         self.gap_start = 0
-        self.gap_end = self.gap_size - self.gap_start
+        self.gap_end = self.gap_size -1
         print(self.buffer)
 
     def grow(self, growthSize: int, position):
-       # self.buffer[self.gap_start : self.gap_start] = [' '] * growthSize
-        #self.gap_end += growthSize
-        #self.gap_size += growthSize
-
         a = self.buffer[position:self.size]
-        self.buffer[position:position+growthSize] = ['_' for i in range(growthSize)]
+        self.buffer[position:position+growthSize] = ['' for i in range(growthSize)]
         self.buffer[position+growthSize:position+growthSize+ self.size - position] = a
 
         self.size += growthSize
@@ -24,15 +20,15 @@ class gapBuffer:
         while position > self.gap_start:
             self.gap_start += 1
             self.gap_end   += 1
-            self.buffer[self.gap_start] = self.buffer[self.gap_end]
-            self.buffer[self.gap_end] = ' '
+            self.buffer[self.gap_start -1] = self.buffer[self.gap_end]
+            self.buffer[self.gap_end] = ''
 
     def left(self, position):
          while position < self.gap_start:
             self.gap_end   -= 1
             self.gap_start -= 1  
-            self.buffer[self.gap_end ] = self.buffer[self.gap_start]
-            self.buffer[self.gap_start] = ' '
+            self.buffer[self.gap_end +1] = self.buffer[self.gap_start]
+            self.buffer[self.gap_start] = ''
 
     def move_position(self, position):
         if position < self.gap_start:
@@ -52,6 +48,16 @@ class gapBuffer:
 
         print(self.buffer)
 
+    def delete(self, position):         
+        if position != self.gap_start:
+            self.move_position(position + 1)
+            self.gap_start -= 1
+            self.buffer[self.gap_start] = ''        
+
+
+    def textContent(self):
+        return "".join(self.buffer[:self.gap_start]) + "".join(self.buffer[self.gap_end:])
+
     def __repr__(self):
         before = "".join(self.buffer[:self.gap_start])
         gap_len = self.gap_end - self.gap_start
@@ -60,10 +66,7 @@ class gapBuffer:
         return f"{before}|{gap}|{after}"
 
 
-buffer = gapBuffer(10)
 
 
-
-print(buffer)
 
 
