@@ -9,7 +9,7 @@ font = pygame.font.SysFont(None, 36)
 clock = pygame.time.Clock()
 
 
-textLines = [gapBuffer(50)]
+textLines = [gapBuffer(100)]
 cursorPos = 0
 positionX = 50
 positionY = 50
@@ -34,7 +34,7 @@ while running:
                         pointerY -= 1
                         cursorPos = len(textLines[pointerY].textContent())
             elif event.key == pygame.K_RETURN:
-                textLines.append(gapBuffer(50))                 
+                textLines.append(gapBuffer(100))                 
                 pointerY += 1
                 cursorPos = 0
             elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -45,7 +45,7 @@ while running:
             elif event.key == pygame.K_DOWN:
                 pointerY += 1
                 if pointerY >= len(textLines): # Creates new line if at the end
-                    textLines.append([])
+                    textLines.append(gapBuffer(100))
                 cursorPos = min(cursorPos, len(textLines[pointerY].textContent()))
             elif event.key == pygame.K_UP:
                 pointerY -= 1
@@ -69,16 +69,27 @@ while running:
                 if character:
                     textLines[pointerY].insert(cursorPos, character)
                     cursorPos += 1
-                    if pointerX > 500:                      
+
+                    # Stop overflowing the line
+                    # Get new X value
+                    buf = textLines[pointerY]
+                    line_text = buf.textContent()           
+                    pointerX = positionX + font.size(line_text[:cursorPos])[0]
+
+                    if pointerX > 950:
+                        buf.delete(cursorPos -1)  
+                        cursorPos -= 1
                         pointerY += 1
                         cursorPos = 0
                         if pointerY >= len(textLines):
-                            textLines.append(gapBuffer(50))
+                            textLines.append(gapBuffer(100))
+                        textLines[pointerY].insert(0, character)
+                        cursorPos = 1
+
                 
     screen.fill((30, 30, 30))
 
-    # Creating the text pointer
-
+    # Creating the text cursor/caret pointer
     buffer = textLines[pointerY]
     bufferText = buffer.textContent()  # Get the text content of the current line
     beforeCursorText = bufferText[:cursorPos]  # Text before the cursor position
@@ -87,7 +98,7 @@ while running:
     if time.time() % 1.2 > 0.6:   #Flicker time    
         pygame.draw.rect(screen, (255,255,255), (pointerX,  positionY + pointerY * font.get_height(), 2, pointerHeight))
        
-    # Render the text lines
+    # Render the text lines, line by line
     for i, buffer in enumerate(textLines):
         if len(buffer.textContent()) == 0:
             continue
