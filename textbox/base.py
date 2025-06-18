@@ -71,16 +71,14 @@ while running:
                     cursorPos += 1
 
                     # Stop overflowing the line
-                    # Get new X value
-                    buf = textLines[pointerY]
-                    line_text = buf.textContent()           
+                    # Get new X value based on the new character
+                    tempBuf = textLines[pointerY]
+                    line_text = tempBuf.textContent()           
                     pointerX = positionX + font.size(line_text[:cursorPos])[0]
 
                     if pointerX > 950:
-                        buf.delete(cursorPos -1)  
-                        cursorPos -= 1
+                        tempBuf.delete(cursorPos -1)  
                         pointerY += 1
-                        cursorPos = 0
                         if pointerY >= len(textLines):
                             textLines.append(gapBuffer(100))
                         textLines[pointerY].insert(0, character)
@@ -88,6 +86,13 @@ while running:
 
                 
     screen.fill((30, 30, 30))
+
+
+
+    # Highlight the current line
+    if pointerY < len(textLines):
+        pygame.draw.rect(screen, (50, 50, 50), (positionX - 50, positionY + pointerY * font.get_height(), 1000, font.get_height()), 0)
+
 
     # Creating the text cursor/caret pointer
     buffer = textLines[pointerY]
@@ -106,7 +111,22 @@ while running:
         key = font.render(textOutput, True, (255, 255, 255))
         screen.blit(key, (positionX, positionY + i * font.get_height()))
 
-    clock.tick(60)
+
+    # Render line numbers
+    for i in range(len(textLines)):
+        line_number = str(i + 1)
+        if(i == (pointerY)): 
+            line_number_surface = font.render(line_number, True, (250, 250, 250))
+        else:
+            line_number_surface = font.render(line_number, True, (100, 100, 100))
+            
+        if( i < 9):
+            screen.blit(line_number_surface, (positionX - 30, positionY + i * font.get_height()))
+        else:
+            screen.blit(line_number_surface, (positionX - 43, positionY + i * font.get_height()))
+
+
+
     pygame.display.flip()
 
 pygame.quit()
