@@ -1,4 +1,4 @@
-from textbox.base import testing         
+from textbox.base import main   
 
 if __name__ == "__main__":
-    testing();    
+    main()    
