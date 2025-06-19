@@ -68,7 +68,8 @@ def main():
                 else:
                     character = event.unicode       
                     if character:
-                        textLines.append(gapBuffer(100))
+                        if pointerY >= len(textLines):
+                                textLines.append(gapBuffer(100))
                         textLines[pointerY].insert(cursorPos, character)
                         cursorPos += 1
 
