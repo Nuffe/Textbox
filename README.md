@@ -1,19 +1,20 @@
 # Textbox 
 
-# Things to add
+|To do            | Comment           | Complete   |
+| ----------------|------------------|-----------|
+| blinking cursor |  | check |
+| multiple lines  |  | check |
+| remove last, jump up | When removing last element on line, jump up one line  | check |
+| remove last, continue| Should remove line if empty and jump up| |
+| character overflow | bug, pressing multiple char fast at end make single char lines be created | check |
+| Writing midline| bug, line can overflow if text is added mid line|  |
+| navigate line arrowkeys|  |check|
+| change from 2d array to gapbuffer| | check, moostly |
+| window border| add a clear border and header| |
+| load/save | load/save functions| |
+| buttons | butons for loading and saving| |
+| line numbers | | check|
+| higlight line| | check |
+| terminal use| make work from terminal| |
+| make executable| | |
 
-# blinking cursor location                                                                          (Cehck)
-# able for multiple lines                                                                           (Check, ish)
-#   - when removing last element, jump up a line                                                    (Check)
-#   - fix overflow (if adding mid line surcomvents if statment to end) and single character lines   (Check)
-#   - Adding text midline overflow, add characters to next line?
-#   - When press return on empty line, remove the line and move all up
-# nagivate the lines                                                                                (Check)
-# gap buffer                                                                (Check, moatly)
-# Window border, header, buttons (load & save stuff), close button
-# able to load and save stuff
-
-# maybe 
-# line numbers                                                                  (Check)
-# ?make open from terminal, maybe a executable
-# higlight line written on, like VS code                                        (Check)
