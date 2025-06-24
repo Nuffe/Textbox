@@ -3,159 +3,167 @@ import pygame
 from .gap_buffer import gapBuffer
 from  linkedList import *
 
+class TextEditor:
+    def __init__(self):
+        pygame.init()
+        self.cursorPos = 0
+        self.positionX = 50
+        self.positionY = 50
+        self.pointerX = 0
+        self.pointerY = 0
+        self.list = LineList()
+        self.currentNode = self.list.append(gapBuffer(100))
+        self.screen = pygame.display.set_mode((1000, 600))
+        self.font = pygame.font.SysFont(None, 36)
+        self.running = True
 
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((1000, 600))
-    font = pygame.font.SysFont(None, 36)
+    def main(self):
 
-    cursorPos = 0
-    positionX = 50
-    positionY = 50
-    pointerX = 0
-    pointerY = 0
-   
-    list = LineList()
-    currentNode = list.append(gapBuffer(100))
-
-
-   # load(textLines)  # Load initial text from file
-
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        
-            # Handle key events
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_BACKSPACE:
-                    if( cursorPos > 0 and pointerY < list.size):
-                        currentNode.data.delete(cursorPos - 1 )  # Delete the character before the cursor
-                        cursorPos -= 1
-                    elif pointerY > 0: # Jumps up a line if at start, and remove node if empty
-                        targetNode = currentNode
-                        prev_node = currentNode.prev
-                        pointerY   -= 1
-                        currentNode = prev_node
-                        if(targetNode.data.textContent() == ""):
-                            list.remove(targetNode)
-                        cursorPos = len(currentNode.data.textContent())
-                elif event.key == pygame.K_RETURN:
-                    currentNode = list.insert_after(currentNode, gapBuffer(100))
-                    pointerY += 1
-                    cursorPos = 0
-                elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    currentNode.data.clear()
-                    cursorPos = 0
-                elif event.key == pygame.K_ESCAPE:
-                    running = False
-                elif event.key == pygame.K_DOWN:
-                    pointerY += 1
-                    if pointerY >= list.size: # Creates new line if at the end
-                        currentNode = list.insert_after(currentNode, gapBuffer(100))
+    # load(textLines)
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                elif event.type == pygame.KEYDOWN:  # Handles the key events
+                    if event.key == pygame.K_BACKSPACE:
+                        self.backspace()
+                    elif event.key == pygame.K_RETURN:
+                        self.pressReturn()
+                    elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        self.currentNode.data.clear()
+                        self.cursorPos = 0
+                    elif event.key == pygame.K_ESCAPE:
+                        self.running = False
+                    elif event.key == pygame.K_DOWN:
+                        self.pressDown()
+                    elif event.key == pygame.K_UP:
+                        self.pressUp()
+                    elif event.key == pygame.K_LEFT:
+                        self.pressLeft()
+                    elif event.key == pygame.K_RIGHT:
+                        self.pressRight()
                     else:
-                        currentNode = currentNode.next
-                    cursorPos = min(cursorPos, len(currentNode.data.textContent()))           
-                elif event.key == pygame.K_UP:
-                    if pointerY > 0:
-                        pointerY -= 1
-                        currentNode = currentNode.prev  if currentNode.prev else currentNode
-                    cursorPos = min(cursorPos, len(currentNode.data.textContent()))
-                elif event.key == pygame.K_LEFT:
-                    if cursorPos > 0:
-                        cursorPos -= 1
-                    elif pointerY > 0: # Jump up if at start
-                        pointerY -= 1
-                        currentNode = currentNode.prev if currentNode.prev else currentNode
-                        cursorPos = len(currentNode.data.textContent())
-                elif event.key == pygame.K_RIGHT:
-                    if cursorPos < len(currentNode.data.textContent()):
-                        cursorPos += 1
-                    elif pointerY < list.size - 1: # Jump down if at end
-                        pointerY += 1
-                        currentNode = currentNode.next if currentNode.next else currentNode
-                        cursorPos = 0
-                else:
-                    character = event.unicode       
-                    if character:
-                        if pointerY >= list.size:
-                                currentNode = list.insert_after(currentNode, gapBuffer(100))
-                        currentNode.data.insert(cursorPos, character) 
-                        cursorPos += 1
+                        self.write(event)
+                        
+            self.screen.fill((30, 30, 30))
+            if self.pointerY < self.list.size:    # Highlight the current line
+                pygame.draw.rect(self.screen, (50, 50, 50), (self.positionX - 50, self.positionY + self.pointerY * self.font.get_height(), 1000, self.font.get_height()), 0)
+            self.textCursor()
+            self.renderText()
+            self.lineNumbers()
+            pygame.display.flip()
+        pygame.quit()
 
 
-                        # Stop overflowing the line
-                        # Get new X value based on the new character
-                        tempBuf = currentNode.data
-                        line_text = tempBuf.textContent()           
-                        pointerX = positionX + font.size(line_text[:cursorPos])[0]
+    def backspace(self):
+        if( self.cursorPos > 0 and self.pointerY < self.list.size):
+            self.currentNode.data.delete(self.cursorPos - 1 )  # Delete the character before the cursor
+            self.cursorPos -= 1
+        elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
+            targetNode = self.currentNode
+            prev_node = self.currentNode.prev
+            self.pointerY   -= 1
+            self.currentNode = prev_node
+            if(targetNode.data.textContent() == ""):
+                self.list.remove(targetNode)
+                self.cursorPos = len(self.currentNode.data.textContent())
 
-                        if pointerX > 950:  # If the line is too long, move to the next line
-                            tempBuf.delete(cursorPos -1)  
-                            pointerY += 1
-                            if pointerY >= list.size:
-                                currentNode = list.insert_after(currentNode, gapBuffer(100))
-                            cursorPos = 0
-                            currentNode.data.insert(cursorPos, character) 
-                            cursorPos = 1
+    def pressReturn(self):
+        self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+        self.pointerY += 1
+        self.cursorPos = 0
 
-                    
-        screen.fill((30, 30, 30))
+    def pressDown(self):
+        self.pointerY += 1
+        if self.pointerY >= self.list.size: # Creates new line if at the end
+            self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+        else:
+            self.currentNode = self.currentNode.next
+            self.cursorPos = min(self.cursorPos, len(self.currentNode.data.textContent()))    
 
-        # Highlight the current line
-        if pointerY < list.size:
-            pygame.draw.rect(screen, (50, 50, 50), (positionX - 50, positionY + pointerY * font.get_height(), 1000, font.get_height()), 0)
+    def pressUp(self):
+        if self.pointerY > 0:
+            self.pointerY -= 1
+            self.currentNode = self.currentNode.prev  if self.currentNode.prev else self.currentNode
+            self.cursorPos = min(self.cursorPos, len(self.currentNode.data.textContent()))
 
+    def pressLeft(self):
+        if self.cursorPos > 0:
+            self.cursorPos -= 1
+        elif self.pointerY > 0: # Jump up if at start
+            self.pointerY -= 1
+            self.currentNode = self.currentNode.prev if self.currentNode.prev else self.currentNode
+            self.cursorPos = len(self.currentNode.data.textContent())
 
-        # Creating the text cursor/caret pointer
-        buffer = currentNode.data
-        bufferText = buffer.textContent()  # Get the text content of the current line
-        beforeCursorText = bufferText[:cursorPos]  # Text before the cursor position
-        pointerX = positionX + font.size(beforeCursorText)[0]  #X position of the cursor based on pixels before it
-        pointerHeight = font.get_height()
+    def pressRight(self):
+        if self.cursorPos < len(self.currentNode.data.textContent()):
+            self.cursorPos += 1
+        elif self.pointerY < self.list.size - 1: # Jump down if at end
+            self.pointerY += 1
+            self.currentNode = self.currentNode.next if self.currentNode.next else self.currentNode
+            self.cursorPos = 0
+            
+    def write(self, event):
+        character = event.unicode       
+        if character:
+            if self.pointerY >= self.list.size:
+                self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+            self.currentNode.data.insert(self.cursorPos, character)
+            self.cursorPos += 1
+
+            # Stop overflowing the line
+            # Get new X value based on the new character
+            tempBuf = self.currentNode.data
+            line_text = tempBuf.textContent()           
+            self.pointerX = self.positionX + self.font.size(line_text[:self.cursorPos])[0]
+            if self.pointerX > 950:  # If the line is too long, move to the next line
+                tempBuf.delete(self.cursorPos -1)  
+                self.pointerY += 1
+                if self.pointerY >= self.list.size:
+                    self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+                self.cursorPos = 0
+                self.currentNode.data.insert(self.cursorPos, character) 
+                self.cursorPos = 1
+
+    def textCursor(self):
+        bufferText = self.currentNode.data.textContent()  # Get the text content of the current line
+        beforeCursorText = bufferText[:self.cursorPos]  # Text before the cursor position
+        self.pointerX = self.positionX + self.font.size(beforeCursorText)[0]  #X position of the cursor based on pixels before it
+        pointerHeight = self.font.get_height()
         if time.time() % 1.2 > 0.6:   #Flicker time    
-            pygame.draw.rect(screen, (255,255,255), (pointerX,  positionY + pointerY * font.get_height(), 2, pointerHeight))
-        
+            pygame.draw.rect(self.screen, (255,255,255), (self.pointerX,  self.positionY + self.pointerY * self.font.get_height(), 2, pointerHeight))
+            
+    # Renders the text from each line
+    def renderText(self):
+            node = self.list.head   # Start with the head node
+            row = 0
+            while node:
+                buf = node.data  
+                text = buf.textContent()
+                if text:
+                    surface = self.font.render(text, True, (255,255,255))
+                    self.screen.blit(surface, (self.positionX, self.positionY + row * self.font.get_height()))
+                row += 1
+                node = node.next
 
-        #Print out text
-        y = positionY
-        node = list.head   # Start with the head node
-        row = 0
-        while node:
-            buf = node.data  
-            text = buf.textContent()
-            if text:
-                surface = font.render(text, True, (255,255,255))
-                screen.blit(surface, (positionX, y + row * font.get_height()))
-            row += 1
-            node = node.next
-
-
-
-        # Render line numbers
-        for i in range(list.size):
+    def lineNumbers(self):
+        for i in range(self.list.size):
             line_number = str(i + 1)
-            if(i == (pointerY)): 
-                line_number_surface = font.render(line_number, True, (250, 250, 250))
+            if(i == (self.pointerY)): 
+                line_number_surface = self.font.render(line_number, True, (250, 250, 250))
             else:
-                line_number_surface = font.render(line_number, True, (100, 100, 100))
+                line_number_surface = self.font.render(line_number, True, (100, 100, 100))
                 
             if( i < 9):
-                screen.blit(line_number_surface, (positionX - 30, positionY + i * font.get_height()))
+                self.screen.blit(line_number_surface, (self.positionX - 30, self.positionY + i * self.font.get_height()))
             else:
-                screen.blit(line_number_surface, (positionX - 43, positionY + i * font.get_height()))
+                self.screen.blit(line_number_surface, (self.positionX - 43, self.positionY + i * self.font.get_height()))
 
-        pygame.display.flip()
-
-    pygame.quit()
-
-
-
-def load(textLines):
-    with open('text.txt') as file:
-        for line in file:
-            textLines.append(gapBuffer(100))
-            line = line.rstrip('\n')
-            for char in line:
-                textLines[-1].insert(len(textLines[-1].textContent()), char)
+    # IN DEVELOPMENT
+    def load(textLines):
+        with open('text.txt') as file:
+            for line in file:
+                textLines.append(gapBuffer(100))
+                line = line.rstrip('\n')
+                for char in line:
+                    textLines[-1].insert(len(textLines[-1].textContent()), char)                

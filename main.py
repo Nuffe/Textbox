@@ -1,4 +1,5 @@
-from textbox.base import main   
+from textbox.base import *
 
 if __name__ == "__main__":
-    main()    
+    editor = TextEditor()
+    editor.main()
