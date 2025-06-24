@@ -19,7 +19,7 @@ class TextEditor:
 
     def main(self):
 
-    # load(textLines)
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -32,6 +32,10 @@ class TextEditor:
                     elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.currentNode.data.clear()
                         self.cursorPos = 0
+                    elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        self.save("text.txt")
+                    elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        self.load("text.txt")
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -160,10 +164,28 @@ class TextEditor:
                 self.screen.blit(line_number_surface, (self.positionX - 43, self.positionY + i * self.font.get_height()))
 
     # IN DEVELOPMENT
-    def load(textLines):
-        with open('text.txt') as file:
-            for line in file:
-                textLines.append(gapBuffer(100))
-                line = line.rstrip('\n')
+    def load(self, filename):
+        count = 0
+        with open(filename) as file:
+            for raw in file:
+                line = raw.rstrip("\n")
+                if count == 0:
+                    node = self.list.head
+                    count += 1
+                else:
+                    node = self.list.append(gapBuffer(100))
+                self.cursorPos = 0
                 for char in line:
-                    textLines[-1].insert(len(textLines[-1].textContent()), char)                
+                    node.data.insert(self.cursorPos, char)
+                    self.cursorPos += 1
+        self.cursorPos = 0
+    
+    def save(self, filename):
+        with open(filename, "w", encoding="utf-8") as file:
+            node = self.list.head
+            while node:
+                buffer = node.data
+                text = buffer.textContent()
+                file.write(text + "\n")
+                node = node.next
+        
