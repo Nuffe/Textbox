@@ -8,17 +8,16 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((1000, 600))
     font = pygame.font.SysFont(None, 36)
-    clock = pygame.time.Clock()
 
-    textLines = []
     cursorPos = 0
     positionX = 50
     positionY = 50
     pointerX = 0
     pointerY = 0
-    headNode = Node(gapBuffer(100))  # Create the head node with an initial gap buffer
-    currentNode = headNode
-    nodeCount = 1
+   
+    list = LineList()
+    currentNode = list.append(gapBuffer(100))
+
 
    # load(textLines)  # Load initial text from file
 
@@ -31,17 +30,19 @@ def main():
             # Handle key events
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
-                    if( cursorPos > 0 and pointerY < nodeCount):
+                    if( cursorPos > 0 and pointerY < list.size):
                         currentNode.data.delete(cursorPos - 1 )  # Delete the character before the cursor
                         cursorPos -= 1
-                    else:
-                        if pointerY > 0:   # Same logic as if backspace at the start of a line
-                            pointerY -= 1
-                            cursorPos = len(currentNode.data.textContent())
+                    elif pointerY > 0: # Jumps up a line if at start, and remove node if empty
+                        targetNode = currentNode
+                        prev_node = currentNode.prev
+                        pointerY   -= 1
+                        currentNode = prev_node
+                        if(targetNode.data.textContent() == ""):
+                            list.remove(targetNode)
+                        cursorPos = len(currentNode.data.textContent())
                 elif event.key == pygame.K_RETURN:
-                    insert_after_node(currentNode, gapBuffer(100))  # Insert a new node after the current one
-                    currentNode = currentNode.next
-                    nodeCount += 1           
+                    currentNode = list.insert_after(currentNode, gapBuffer(100))
                     pointerY += 1
                     cursorPos = 0
                 elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -51,38 +52,38 @@ def main():
                     running = False
                 elif event.key == pygame.K_DOWN:
                     pointerY += 1
-                    if pointerY >= nodeCount: # Creates new line if at the end
-                        insert_after_node(currentNode, gapBuffer(100))
-                        nodeCount += 1
-                    currentNode = currentNode.next if currentNode.next else currentNode
-                    cursorPos = min(cursorPos, len(currentNode.data.textContent()))
+                    if pointerY >= list.size: # Creates new line if at the end
+                        currentNode = list.insert_after(currentNode, gapBuffer(100))
+                    else:
+                        currentNode = currentNode.next
+                    cursorPos = min(cursorPos, len(currentNode.data.textContent()))           
                 elif event.key == pygame.K_UP:
-                    print("UP", pointerY, nodeCount)
                     if pointerY > 0:
                         pointerY -= 1
-                        currentNode = currentNode.prev
+                        currentNode = currentNode.prev  if currentNode.prev else currentNode
                     cursorPos = min(cursorPos, len(currentNode.data.textContent()))
                 elif event.key == pygame.K_LEFT:
                     if cursorPos > 0:
                         cursorPos -= 1
                     elif pointerY > 0: # Jump up if at start
                         pointerY -= 1
+                        currentNode = currentNode.prev if currentNode.prev else currentNode
                         cursorPos = len(currentNode.data.textContent())
                 elif event.key == pygame.K_RIGHT:
                     if cursorPos < len(currentNode.data.textContent()):
                         cursorPos += 1
-                    elif pointerY < nodeCount - 1: # Jump down if at end
+                    elif pointerY < list.size - 1: # Jump down if at end
                         pointerY += 1
+                        currentNode = currentNode.next if currentNode.next else currentNode
                         cursorPos = 0
                 else:
                     character = event.unicode       
                     if character:
-                        if pointerY >= nodeCount:
-                                insert_after_node(currentNode, gapBuffer(100))
-                                currentNode = currentNode.next
-                                nodeCount += 1
+                        if pointerY >= list.size:
+                                currentNode = list.insert_after(currentNode, gapBuffer(100))
                         currentNode.data.insert(cursorPos, character) 
                         cursorPos += 1
+
 
                         # Stop overflowing the line
                         # Get new X value based on the new character
@@ -93,10 +94,8 @@ def main():
                         if pointerX > 950:  # If the line is too long, move to the next line
                             tempBuf.delete(cursorPos -1)  
                             pointerY += 1
-                            if pointerY >= nodeCount:
-                                insert_after_node(currentNode, gapBuffer(100))
-                                nodeCount += 1
-                            currentNode = currentNode.next if currentNode.next else currentNode
+                            if pointerY >= list.size:
+                                currentNode = list.insert_after(currentNode, gapBuffer(100))
                             cursorPos = 0
                             currentNode.data.insert(cursorPos, character) 
                             cursorPos = 1
@@ -105,7 +104,7 @@ def main():
         screen.fill((30, 30, 30))
 
         # Highlight the current line
-        if pointerY < nodeCount:
+        if pointerY < list.size:
             pygame.draw.rect(screen, (50, 50, 50), (positionX - 50, positionY + pointerY * font.get_height(), 1000, font.get_height()), 0)
 
 
@@ -118,29 +117,24 @@ def main():
         if time.time() % 1.2 > 0.6:   #Flicker time    
             pygame.draw.rect(screen, (255,255,255), (pointerX,  positionY + pointerY * font.get_height(), 2, pointerHeight))
         
-        # Render the text lines, line by line
-        for i, buffer in enumerate(textLines):
-            if len(buffer.textContent()) == 0:
-                continue
-            textOutput = buffer.textContent()  # Get the text content of the current line
-            key = font.render(textOutput, True, (255, 255, 255))
-            screen.blit(key, (positionX, positionY + i * font.get_height()))
 
+        #Print out text
         y = positionY
-        node = headNode   # Start with the head node
+        node = list.head   # Start with the head node
         row = 0
         while node:
-            buf = node.data   # your GapBuffer or whatever you called it
+            buf = node.data  
             text = buf.textContent()
             if text:
                 surface = font.render(text, True, (255,255,255))
                 screen.blit(surface, (positionX, y + row * font.get_height()))
-            node = node.next
             row += 1
+            node = node.next
+
 
 
         # Render line numbers
-        for i in range(nodeCount):
+        for i in range(list.size):
             line_number = str(i + 1)
             if(i == (pointerY)): 
                 line_number_surface = font.render(line_number, True, (250, 250, 250))
