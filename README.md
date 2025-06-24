@@ -19,4 +19,5 @@
 | Higlight line| | Check |
 | Terminal use| Make work from terminal| |
 | Make executable| | |
-
+| Docker image |Make so editor can run trough docker in windows | |
+| Add scroll bar| Scrollbar and autoscroll when writing below window| |
