@@ -12,7 +12,7 @@ class TextEditor:
         self.pointerX = 0
         self.pointerY = 0
         self.list = LineList()
-        self.currentNode = self.list.append(gapBuffer(100))
+        self.currentNode = self.list.append(gapBuffer(10))
         self.screen = pygame.display.set_mode((1000, 600))
         self.font = pygame.font.SysFont(None, 36)
         self.running = True
@@ -73,14 +73,14 @@ class TextEditor:
                 self.cursorPos = len(self.currentNode.data.textContent())
 
     def pressReturn(self):
-        self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+        self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         self.pointerY += 1
         self.cursorPos = 0
 
     def pressDown(self):
         self.pointerY += 1
         if self.pointerY >= self.list.size: # Creates new line if at the end
-            self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+            self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         else:
             self.currentNode = self.currentNode.next
             self.cursorPos = min(self.cursorPos, len(self.currentNode.data.textContent()))    
@@ -111,7 +111,7 @@ class TextEditor:
         character = event.unicode       
         if character:
             if self.pointerY >= self.list.size:
-                self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+                self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
             self.currentNode.data.insert(self.cursorPos, character)
             self.cursorPos += 1
 
@@ -124,7 +124,7 @@ class TextEditor:
                 tempBuf.delete(self.cursorPos -1)  
                 self.pointerY += 1
                 if self.pointerY >= self.list.size:
-                    self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(100))
+                    self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
@@ -142,8 +142,8 @@ class TextEditor:
             node = self.list.head   # Start with the head node
             row = 0
             while node:
-                buf = node.data  
-                text = buf.textContent()
+                buffer = node.data  
+                text = buffer.textContent()
                 if text:
                     surface = self.font.render(text, True, (255,255,255))
                     self.screen.blit(surface, (self.positionX, self.positionY + row * self.font.get_height()))
@@ -173,7 +173,7 @@ class TextEditor:
                     node = self.list.head
                     count += 1
                 else:
-                    node = self.list.append(gapBuffer(100))
+                    node = self.list.append(gapBuffer(10))
                 self.cursorPos = 0
                 for char in line:
                     node.data.insert(self.cursorPos, char)
