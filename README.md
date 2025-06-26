@@ -1,4 +1,3 @@
-# Textbox git
 
 |To do            | Comment           | Complete   |
 | ----------------|------------------|-----------|
@@ -12,12 +11,13 @@
 | Navigate line arrowkeys|  |Check|
 | Change from 2d array to gapbuffer| | Check, mostly |
 | Change from list to double linked | problem: make it yourself | Check |
-| Window border| Add a clear border and header| |
-| Load/save | Load/save functions| |
-| Buttons | Butons for loading and saving| |
+| Window border| Add a clear border, header and icon| |
+| Load/save | Load/save functions| Check |
+| Buttons | Butons for loading and saving| Need styling |
 | Line numbers | | Check|
 | Higlight line| | Check |
-| Terminal use| Make work from terminal| |
+| Terminal use| Make work from terminal| meh |
 | Make executable| | |
 | Docker image |Make so editor can run trough docker in windows | |
 | Add scroll bar| Scrollbar and autoscroll when writing below window| |
+| Mouse navigation| click with mouse to target lines | |
