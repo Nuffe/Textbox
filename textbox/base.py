@@ -15,15 +15,25 @@ class TextEditor:
         self.currentNode = self.list.append(gapBuffer(10))
         self.screen = pygame.display.set_mode((1000, 600))
         self.font = pygame.font.SysFont(None, 36)
+        self.loadButton = pygame.Rect(0, 0, 100, self.font.get_height())
+        self.saveButton = pygame.Rect(140, 0, 100,  self.font.get_height())
         self.running = True
 
     def main(self):
 
-
+        pygame.display.set_caption("Project MilkBox")
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mx,my = event.pos
+                    if self.loadButton.collidepoint(mx,my):
+                        self.load("text.txt")
+                        print("Load clicked!")
+                    elif self.saveButton.collidepoint(mx,my):
+                        self.save("text.txt")
+                        print("Save clicked!")
                 elif event.type == pygame.KEYDOWN:  # Handles the key events
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
@@ -50,6 +60,7 @@ class TextEditor:
                         self.write(event)
                         
             self.screen.fill((30, 30, 30))
+            self.toolBar()
             if self.pointerY < self.list.size:    # Highlight the current line
                 pygame.draw.rect(self.screen, (50, 50, 50), (self.positionX - 50, self.positionY + self.pointerY * self.font.get_height(), 1000, self.font.get_height()), 0)
             self.textCursor()
@@ -165,11 +176,18 @@ class TextEditor:
 
     # IN DEVELOPMENT
     def load(self, filename):
+        self.list = LineList()
+        self.currentNode = self.list.append(gapBuffer(10))
         count = 0
+        self.cursorPos = 0
+        self.positionX = 50
+        self.positionY = 50
+        self.pointerX = 0
+        self.pointerY = 0
         with open(filename) as file:
             for raw in file:
                 line = raw.rstrip("\n")
-                if count == 0:
+                if count == 0: # Make it start  from the first line
                     node = self.list.head
                     count += 1
                 else:
@@ -189,3 +207,11 @@ class TextEditor:
                 file.write(text + "\n")
                 node = node.next
         
+    
+    def toolBar(self):
+        pygame.draw.rect(self.screen, (50, 100, 200), (0, 0, 1000, self.font.get_height()), 0)
+        pygame.draw.rect(self.screen, (200,100,50), self.loadButton)
+        pygame.draw.rect(self.screen, (200,100,50), self.saveButton)
+
+        self.screen.blit(self.font.render("Load", True, (255,255,255)),(self.loadButton.x + 15, 0))
+        self.screen.blit(self.font.render("Save", True, (255,255,255)),(self.saveButton.x + 15, 0))
