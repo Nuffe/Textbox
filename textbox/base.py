@@ -2,6 +2,10 @@ import time
 import pygame
 from .gap_buffer import gapBuffer
 from  linkedList import *
+import tkinter as tk
+from tkinter import filedialog as fd
+
+
 
 class TextEditor:
     def __init__(self):
@@ -18,9 +22,13 @@ class TextEditor:
         self.loadButton = pygame.Rect(0, 0, 100, self.font.get_height())
         self.saveButton = pygame.Rect(140, 0, 100,  self.font.get_height())
         self.running = True
+        self.app = tk.Tk()
+        self.filename = ""
 
     def main(self):
 
+        self.app.overrideredirect(1)
+        self.app.withdraw()
         pygame.display.set_caption("Project MilkBox")
         while self.running:
             for event in pygame.event.get():
@@ -29,11 +37,9 @@ class TextEditor:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mx,my = event.pos
                     if self.loadButton.collidepoint(mx,my):
-                        self.load("text.txt")
-                        print("Load clicked!")
+                        self.loadDialog()
                     elif self.saveButton.collidepoint(mx,my):
-                        self.save("text.txt")
-                        print("Save clicked!")
+                        self.saveDialog()
                 elif event.type == pygame.KEYDOWN:  # Handles the key events
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
@@ -43,9 +49,9 @@ class TextEditor:
                         self.currentNode.data.clear()
                         self.cursorPos = 0
                     elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.save("text.txt")
+                        self.save(self.filename)
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.load("text.txt")
+                        self.loadDialog()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -174,7 +180,7 @@ class TextEditor:
             else:
                 self.screen.blit(line_number_surface, (self.positionX - 43, self.positionY + i * self.font.get_height()))
 
-    # IN DEVELOPMENT
+
     def load(self, filename):
         self.list = LineList()
         self.currentNode = self.list.append(gapBuffer(10))
@@ -215,3 +221,26 @@ class TextEditor:
 
         self.screen.blit(self.font.render("Load", True, (255,255,255)),(self.loadButton.x + 15, 0))
         self.screen.blit(self.font.render("Save", True, (255,255,255)),(self.saveButton.x + 15, 0))
+
+    def loadDialog(self):
+        filetypes = [
+            ("Text files", "*.txt")
+        ]
+        filename = fd.askopenfilename(
+            filetypes= filetypes,
+        )
+        if  filename:
+            self.load(filename)
+            self.filename = filename
+            print(filename)
+    
+    def saveDialog(self):
+        filetypes = [
+            ("Text files", "*.txt")
+        ]
+        filename = fd.asksaveasfilename(
+            filetypes= filetypes,
+        )
+        if  filename:
+            self.save(filename)
+            print(filename)
