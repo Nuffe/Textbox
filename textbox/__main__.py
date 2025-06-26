@@ -1,4 +1,9 @@
-from .base import *
+import os
+if "WAYLAND_DISPLAY" in os.environ:
+        del os.environ["WAYLAND_DISPLAY"]
+        os.environ["DISPLAY"] = ":0"
+        
+from base import *       
 
 def main():
     editor = TextEditor()
