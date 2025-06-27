@@ -9,7 +9,7 @@
 | Character overflow | Bug, pressing multiple char fast at end make single char lines be created | Check |
 | Writing midline| Bug, line can overflow if text is added mid line|  |
 | Navigate line arrowkeys|  |Check|
-| Change from 2d array to gapbuffer| | Check, mostly |
+| Change from 2d array to gapbuffer| | Check |
 | Change from list to double linked | problem: make it yourself | Check |
 | Window border| Add a clear border, header and icon| |
 | Load/save | Load/save functions| Check |
@@ -17,7 +17,6 @@
 | Line numbers | | Check|
 | Higlight line| | Check |
 | Terminal use| Make work from terminal| meh |
-| Make executable| | |
-| Docker image |Make so editor can run trough docker in windows | |
+|<del> Docker image | <del> Make so editor can run trough docker in windows  | |
 | Add scroll bar| Scrollbar and autoscroll when writing below window| |
 | Mouse navigation| click with mouse to target lines | |
