@@ -43,13 +43,11 @@ class LineList:
         else:
             # if no prev, then we at head
             self.head = node.next
-
         # need two "if else" because head and tail can be the same node
         if node.next:
             node.next.prev = node.prev
         else:
             # if no next, we at tail
             self.tail = node.prev
-
         node.prev = node.next = None
         self.size -= 1

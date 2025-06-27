@@ -1,6 +1,6 @@
 import time
 import pygame
-from .gap_buffer import gapBuffer
+from  gap_buffer import gapBuffer
 from  linkedList import *
 import tkinter as tk
 from tkinter import filedialog as fd
@@ -22,13 +22,10 @@ class TextEditor:
         self.loadButton = pygame.Rect(0, 0, 100, self.font.get_height())
         self.saveButton = pygame.Rect(140, 0, 100,  self.font.get_height())
         self.running = True
-        self.app = tk.Tk()
         self.filename = ""
 
     def main(self):
 
-        self.app.overrideredirect(1)
-        self.app.withdraw()
         pygame.display.set_caption("Project MilkBox")
         while self.running:
             for event in pygame.event.get():
@@ -213,7 +210,6 @@ class TextEditor:
                 file.write(text + "\n")
                 node = node.next
         
-    
     def toolBar(self):
         pygame.draw.rect(self.screen, (50, 100, 200), (0, 0, 1000, self.font.get_height()), 0)
         pygame.draw.rect(self.screen, (200,100,50), self.loadButton)
@@ -223,24 +219,36 @@ class TextEditor:
         self.screen.blit(self.font.render("Save", True, (255,255,255)),(self.saveButton.x + 15, 0))
 
     def loadDialog(self):
+        app = tk.Tk()
+        app.withdraw()
+        app.update()
         filetypes = [
             ("Text files", "*.txt")
         ]
         filename = fd.askopenfilename(
+            parent= app,
             filetypes= filetypes,
         )
+        app.destroy()
         if  filename:
             self.load(filename)
             self.filename = filename
             print(filename)
-    
+        
     def saveDialog(self):
+        app = tk.Tk()
+        app.update()
+        app.withdraw()
         filetypes = [
             ("Text files", "*.txt")
         ]
         filename = fd.asksaveasfilename(
+            parent= app,
             filetypes= filetypes,
         )
+        app.destroy()
         if  filename:
             self.save(filename)
             print(filename)
+
+    

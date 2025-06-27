@@ -1,8 +1,1 @@
-This is
-a 
-text file
-for the use of 
-implementing 
-loading 
-text 
-from a file
+Writing to the text file
