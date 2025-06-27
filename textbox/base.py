@@ -5,39 +5,41 @@ from  linkedList import *
 import tkinter as tk
 from tkinter import filedialog as fd
 
-
-
 class TextEditor:
     def __init__(self):
         pygame.init()
         self.cursorPos = 0
         self.positionX = 50
-        self.positionY = 50
+        self.positionY = 24
         self.pointerX = 0
         self.pointerY = 0
         self.list = LineList()
         self.currentNode = self.list.append(gapBuffer(10))
         self.screen = pygame.display.set_mode((1000, 600))
-        self.font = pygame.font.SysFont(None, 36)
-        self.loadButton = pygame.Rect(0, 0, 100, self.font.get_height())
-        self.saveButton = pygame.Rect(140, 0, 100,  self.font.get_height())
+        self.font = pygame.font.SysFont(["cascadiacoderegular", "cascadiamonoregular", "monospace"], 20)
+        self.loadButton = pygame.Rect(20, 0, 50, self.font.get_height())
+        self.saveButton = pygame.Rect(100, 0, 50,  self.font.get_height())
         self.running = True
         self.filename = ""
 
     def main(self):
-
         pygame.display.set_caption("Project MilkBox")
+        icon = pygame.image.load("assets/milk-carton.png")
+        pygame.display.set_icon(icon)
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                # Left mouse click
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mx,my = event.pos
                     if self.loadButton.collidepoint(mx,my):
                         self.loadDialog()
                     elif self.saveButton.collidepoint(mx,my):
                         self.saveDialog()
-                elif event.type == pygame.KEYDOWN:  # Handles the key events
+                # Handles the key events
+                elif event.type == pygame.KEYDOWN:  
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
                     elif event.key == pygame.K_RETURN:
@@ -46,7 +48,8 @@ class TextEditor:
                         self.currentNode.data.clear()
                         self.cursorPos = 0
                     elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.save(self.filename)
+                        if self.filename != "":
+                            self.save(self.filename)
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.loadDialog()
                     elif event.key == pygame.K_ESCAPE:
@@ -184,7 +187,7 @@ class TextEditor:
         count = 0
         self.cursorPos = 0
         self.positionX = 50
-        self.positionY = 50
+        self.positionY = 24
         self.pointerX = 0
         self.pointerY = 0
         with open(filename) as file:
@@ -211,20 +214,17 @@ class TextEditor:
                 node = node.next
         
     def toolBar(self):
-        pygame.draw.rect(self.screen, (50, 100, 200), (0, 0, 1000, self.font.get_height()), 0)
-        pygame.draw.rect(self.screen, (200,100,50), self.loadButton)
-        pygame.draw.rect(self.screen, (200,100,50), self.saveButton)
+        pygame.draw.rect(self.screen, (255, 255, 255), (0, 0, 1000, self.font.get_height()), 0)
+        pygame.draw.rect(self.screen, (255,255, 255), self.loadButton)
+        pygame.draw.rect(self.screen, (255,255,255), self.saveButton)
 
-        self.screen.blit(self.font.render("Load", True, (255,255,255)),(self.loadButton.x + 15, 0))
-        self.screen.blit(self.font.render("Save", True, (255,255,255)),(self.saveButton.x + 15, 0))
+        self.screen.blit(self.font.render("Load", True, (25,25,25)),(self.loadButton.x, 0))
+        self.screen.blit(self.font.render("Save", True, (0,0,0)),(self.saveButton.x, 0))
 
     def loadDialog(self):
         app = tk.Tk()
         app.withdraw()
-        app.update()
-        filetypes = [
-            ("Text files", "*.txt")
-        ]
+        filetypes = [ ("Text files", "*.txt") ]
         filename = fd.askopenfilename(
             parent= app,
             filetypes= filetypes,
@@ -233,15 +233,12 @@ class TextEditor:
         if  filename:
             self.load(filename)
             self.filename = filename
-            print(filename)
+
         
     def saveDialog(self):
         app = tk.Tk()
-        app.update()
         app.withdraw()
-        filetypes = [
-            ("Text files", "*.txt")
-        ]
+        filetypes = [ ("Text files", "*.txt") ]
         filename = fd.asksaveasfilename(
             parent= app,
             filetypes= filetypes,
@@ -249,6 +246,4 @@ class TextEditor:
         app.destroy()
         if  filename:
             self.save(filename)
-            print(filename)
-
     
