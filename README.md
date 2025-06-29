@@ -20,3 +20,4 @@
 |<del> Docker image | <del> Make so editor can run trough docker in windows  | |
 | Add scroll bar| Scrollbar and autoscroll when writing below window| |
 | Mouse navigation| click with mouse to target lines | |
+| Undo/redo | | |
