@@ -43,6 +43,11 @@ class UndoList:
         print("cursorPos:" + str(undoObject.cursorPos))
         print(undoObject.node)
 
+        for length in range(len(undoObject.data) +1):
+            print(length)
+            undoObject.node.data.delete(undoObject.cursorPos -length)
+        newPos = (undoObject.cursorPos - len(undoObject.data))
+        return newPos
 
 
     # need to have a check so node exitsts when undo is called
