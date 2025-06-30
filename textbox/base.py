@@ -4,6 +4,7 @@ from  gap_buffer import gapBuffer
 from  linkedList import *
 import tkinter as tk
 from tkinter import filedialog as fd
+from undo import *
 
 class TextEditor:
     def __init__(self):
@@ -21,6 +22,7 @@ class TextEditor:
         self.saveButton = pygame.Rect(100, 0, 50,  self.font.get_height())
         self.running = True
         self.filename = ""
+        self.undolist = UndoList(self.currentNode)
 
     def main(self):
         pygame.display.set_caption("Project MilkBox")
@@ -52,6 +54,8 @@ class TextEditor:
                             self.save(self.filename)
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.loadDialog()
+                    elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                        self.undolist.undo()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -145,6 +149,7 @@ class TextEditor:
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
+            self.undolist.append(character, self.cursorPos, self.currentNode)
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line

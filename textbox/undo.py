@@ -1,8 +1,8 @@
 class Undo:
-    def __init__(self):
+    def __init__(self, node):
         self.data = ""
         self.cursorPos = 0
-        self.node = None
+        self.node = node
         self.delkey = False
     
     def append(self, char):
@@ -10,24 +10,38 @@ class Undo:
 
 
 class UndoList:
-    def __init__(self):
-        self.list = []
-        self.size = 0
+    def __init__(self, node):
+        self.list = [Undo(node)]
+        self.size = 1
 
     def append(self, char, cursorPos, node):
-
-        if char == " " or node != self.list[self.size].node: # If spacebar is pressed or user writes to a new line move onto next undo object
+        print(f"[append] char='{char}', size={self.size}")
+        if char == " " or node != self.list[self.size -1].node: # If spacebar is pressed or user writes to a new line move onto next undo object
+            print("→ NEW Undo created")
             self.size += 1
-            self.list.append(Undo())
-            self.list[self.size].append(char) # Run the function again to add the character for the new Undo
+            self.list.append(Undo(node))
+            if char != " ":
+                self.list[self.size].append(char) # Run the function again to add the character for the new Undo
+
         else:
+            print("→ Appending to existing Undo")
             undo = self.list[self.size -1]
             undo.append(char)
             undo.cursorPos = cursorPos
-            undo.node = node
+
             
 
     
+    def undo(self):
+        print("Undo")
+        if len(self.list) <= 0:
+            return print("Noting to undo")
+        undoObject = self.list.pop() 
+        self.size -= 1               # Somethin goes wrong here :(
+        print("size: " +  str(self.size))
+        print("undo data: " + undoObject.data)
+        print("cursorPos:" + str(undoObject.cursorPos))
+        print(undoObject.node)
 
 
 
