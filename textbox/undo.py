@@ -13,15 +13,23 @@ class UndoList:
     def __init__(self, node):
         self.list = [Undo(node)]
         self.size = 1
+        self.undocalled = False
 
     def append(self, char, cursorPos, node):
         print(f"[append] char='{char}', size={self.size}")
-        if char == " " or node != self.list[self.size -1].node: # If spacebar is pressed or user writes to a new line move onto next undo object
+
+        if not self.list:
+            self.size += 1
+            self.list.append(Undo(node))
+
+        if char == " " or node != self.list[self.size -1].node or self.undocalled: # If spacebar is pressed or user writes to a new line move onto next undo object
             print("→ NEW Undo created")
             self.size += 1
             self.list.append(Undo(node))
+            self.undocalled = False
             if char != " ":
-                self.list[self.size].append(char) # Run the function again to add the character for the new Undo
+                print("list size: " + str(self.size) + " calc size = " + str(len(self.list)))
+                self.list[self.size -1].append(char) # Run the function again to add the character for the new Undo
 
         else:
             print("→ Appending to existing Undo")
@@ -45,8 +53,9 @@ class UndoList:
 
         for length in range(len(undoObject.data) +1):
             print(length)
-            undoObject.node.data.delete(undoObject.cursorPos -length)
+            undoObject.node.data.delete((undoObject.cursorPos -length))
         newPos = (undoObject.cursorPos - len(undoObject.data))
+        self.undocalled = True
         return newPos
 
 
