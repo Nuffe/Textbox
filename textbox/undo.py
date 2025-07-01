@@ -9,7 +9,11 @@ class Undo:
     def append(self, char):
         self.data = self.data + char
 
-# Need fix, move pointer to follow with undo
+
+# Note:
+#   Only for undoing writing. need to add undo for deleting
+#   Redo is also left
+
 
 class UndoList:
     def __init__(self, node):
@@ -18,39 +22,48 @@ class UndoList:
         self.undocalled = False
         self.headNode = node
 
-    def append(self, char, cursorPos, node, pointerY):
-        print(f"[append] char='{char}', size={self.size}")
-
+    def append(self, char, cursorPos, node, pointerY, delkey):
         if not self.list:
             self.size += 1
             self.list.append(Undo(node))
-
-        if char == " " or node != self.list[self.size -1].node or self.undocalled: # If spacebar is pressed or user writes to a new line move onto next undo object
-            print("→ NEW Undo created")
+        # If spacebar is pressed or user writes to a new line move onto next undo object
+        if char == " " or node != self.list[self.size -1].node or self.undocalled:
             self.size += 1
             self.list.append(Undo(node))
             self.undocalled = False
-            print("list size: " + str(self.size) + " calc size = " + str(len(self.list)))
-          
-        print("→ Appending to existing Undo")
+
         undo = self.list[self.size -1]
         undo.append(char)
         undo.cursorPos = cursorPos
         undo.pointerY = pointerY
+        undo.delkey = delkey
 
-    def undo(self):
+
+
+    def undoDelete(self):
         if len(self.list) <= 0:
-            print("Noting to undo")
             return 0, 0, self.headNode
         undoObject = self.list.pop() 
-        self.size -= 1               # Somethin goes wrong here :(
-        print("size: " +  str(self.size))
-        print("undo data: " + undoObject.data)
-        print("cursorPos:" + str(undoObject.cursorPos))
-
+        self.size -= 1 
         for length in range(len(undoObject.data) +1):
             undoObject.node.data.delete((undoObject.cursorPos -length))
+
         newPos = (undoObject.cursorPos - len(undoObject.data))
+
         self.undocalled = True
-        print("undo pointerY: " + str(undoObject.pointerY))
         return newPos, undoObject.pointerY, undoObject.node
+
+    def undoAdd(self):
+        if len(self.list) <= 0:
+            return 0, 0, self.headNode
+        undoObject = self.list.pop() 
+        self.size -= 1 
+        for length in range(len(undoObject.data)):
+            undoObject.node.data.insert(undoObject.cursorPos - len(undoObject.data) + length, undoObject.data[length])
+        newPos = (undoObject.cursorPos)
+        
+        self.undocalled = True
+        return newPos, undoObject.pointerY, undoObject.node
+
+        #Not to self. Might need a counter on how many times press backspace. User might only write back part of the word or more then one word
+        # Where to call this function, the other is in write, but backspace part dont have character knowladge 
