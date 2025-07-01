@@ -55,7 +55,9 @@ class TextEditor:
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.loadDialog()
                     elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.cursorPos, self.pointerY, self.currentNode = self.undolist.undo()
+                        self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction()
+                        # self.cursorPos, self.pointerY, self.currentNode
+                        # self.undolist.undoAdd()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -82,7 +84,9 @@ class TextEditor:
 
     def backspace(self):
         if( self.cursorPos > 0 and self.pointerY < self.list.size):
-            self.currentNode.data.delete(self.cursorPos - 1 )  # Delete the character before the cursor
+            deleted = self.currentNode.data.delete(self.cursorPos - 1 )  # Delete the character before the cursor
+            self.undolist.append(deleted, self.cursorPos, self.currentNode, self.pointerY, True)
+            
             self.cursorPos -= 1
         elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
             targetNode = self.currentNode
@@ -149,8 +153,7 @@ class TextEditor:
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
-            self.undolist.append(character, self.cursorPos, self.currentNode, self.pointerY)
-            print("cursroPos: " + str(self.cursorPos))
+            self.undolist.append(character, self.cursorPos, self.currentNode, self.pointerY, False)
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line
