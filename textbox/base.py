@@ -55,7 +55,7 @@ class TextEditor:
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.loadDialog()
                     elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.cursorPos = self.undolist.undo()
+                        self.cursorPos, self.pointerY, self.currentNode = self.undolist.undo()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -149,7 +149,8 @@ class TextEditor:
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
-            self.undolist.append(character, self.cursorPos, self.currentNode)
+            self.undolist.append(character, self.cursorPos, self.currentNode, self.pointerY)
+            print("cursroPos: " + str(self.cursorPos))
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line
