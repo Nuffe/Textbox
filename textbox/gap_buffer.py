@@ -6,7 +6,7 @@ class gapBuffer:
         self.buffer = ['_'] * self.size
         self.gap_start = 0
         self.gap_end = self.gap_start + self.gap_size
-        print(self.buffer)
+       # print(self.buffer)
 
 
     # Grow the gap at position, new array is made and old data is copied over
@@ -51,15 +51,17 @@ class gapBuffer:
         self.move_position(position)
         self.buffer[self.gap_start] = character
         self.gap_start += 1
-        print(self.buffer)
+        #print(self.buffer)
 
     # simular to move left, but increases the gap size
     def delete(self, position):         
-        if position != self.gap_start:
+        if position +1 != self.gap_start:
             self.move_position(position +1)
-            self.gap_start -= 1
-            self.gap_size += 1
-            self.buffer[self.gap_start] = '_'  
+        self.gap_start -= 1
+        deleted = self.buffer[self.gap_start]
+        self.buffer[self.gap_start] = '_'  
+        self.gap_size += 1
+        return deleted
 
     # Returns the text content, excluding the gap
     def textContent(self):
