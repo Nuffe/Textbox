@@ -36,7 +36,7 @@ class gapBuffer:
 
     # way to keep position and gap in sync
     def move_position(self, position):
-
+        print("move pos gap size: " ,self.gap_size)
         if self.gap_size == 0: # Bug fix, stop if from moving on empy buffer
             self.grow(5, self.gap_start)
         if position < self.gap_start:
@@ -44,24 +44,27 @@ class gapBuffer:
         else:
             self.right(position)
 
-    def insert(self, position, character):
+
+    def insert(self, position, char):
         if self.gap_size == 0:
             self.grow(5, position)
-        self.gap_size -= 1
         self.move_position(position)
-        self.buffer[self.gap_start] = character
+        self.buffer[self.gap_start] = char
         self.gap_start += 1
-        #print(self.buffer)
+        self.gap_size -= 1
+        self.gap_end = self.gap_start + self.gap_size
 
     # simular to move left, but increases the gap size
     def delete(self, position):         
-        if position +1 != self.gap_start:
-            self.move_position(position +1)
+        self.move_position(position +1)
         self.gap_start -= 1
         deleted = self.buffer[self.gap_start]
         self.buffer[self.gap_start] = '_'  
         self.gap_size += 1
+        self.gap_end = self.gap_start + self.gap_size
         return deleted
+    
+
 
     # Returns the text content, excluding the gap
     def textContent(self):
