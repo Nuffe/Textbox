@@ -51,3 +51,11 @@ class LineList:
             self.tail = node.prev
         node.prev = node.next = None
         self.size -= 1
+
+    def contains(self, node):
+        current = self.head
+        while current:
+            if current == node:
+                return True
+            current = current.next
+        return False

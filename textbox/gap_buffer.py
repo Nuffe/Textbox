@@ -36,7 +36,6 @@ class gapBuffer:
 
     # way to keep position and gap in sync
     def move_position(self, position):
-        print("move pos gap size: " ,self.gap_size)
         if self.gap_size == 0: # Bug fix, stop if from moving on empy buffer
             self.grow(5, self.gap_start)
         if position < self.gap_start:
@@ -54,9 +53,10 @@ class gapBuffer:
         self.gap_size -= 1
         self.gap_end = self.gap_start + self.gap_size
 
+
     # simular to move left, but increases the gap size
     def delete(self, position):         
-        self.move_position(position +1)
+        self.move_position(position)
         self.gap_start -= 1
         deleted = self.buffer[self.gap_start]
         self.buffer[self.gap_start] = '_'  

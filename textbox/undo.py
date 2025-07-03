@@ -19,7 +19,8 @@ class Undo:
 
 
 class UndoList:
-    def __init__(self, node):
+    def __init__(self, node, nodeList):
+        self.nodeList = nodeList
         self.list = [Undo(node)]
         self.size = 1
         self.undocalled = False
@@ -48,10 +49,14 @@ class UndoList:
 
 
     def undoAction(self):
-        if len(self.list) <= 0:
+        if self.list is None or self.size <= 0:
+            print("nothing to undo")
             return 0, 0, self.headNode
         undoObject = self.list.pop() 
         self.size -= 1 
+
+        if self.nodeList.contains(undoObject.node) is False:
+            undoObject.node = self.nodeList.append(undoObject.node.data)
 
         if undoObject.delkey:
             for length in (range(undoObject.deleteCount)):  
@@ -59,7 +64,7 @@ class UndoList:
                 undoObject.node.data.insert(undoObject.cursorPos -1 , undoObject.data[length])
             newPos = (undoObject.cursorPos + length)
         else:
-            for length in range(len(undoObject.data) +1):
+            for length in range(len(undoObject.data)):
                 undoObject.node.data.delete((undoObject.cursorPos -length))
             newPos = (undoObject.cursorPos - len(undoObject.data))
 

@@ -22,7 +22,7 @@ class TextEditor:
         self.saveButton = pygame.Rect(100, 0, 50,  self.font.get_height())
         self.running = True
         self.filename = ""
-        self.undolist = UndoList(self.currentNode)
+        self.undolist = UndoList(self.currentNode, self.list)
 
     def main(self):
         pygame.display.set_caption("Project MilkBox")
@@ -56,8 +56,6 @@ class TextEditor:
                         self.loadDialog()
                     elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction()
-                        # self.cursorPos, self.pointerY, self.currentNode
-                        # self.undolist.undoAdd()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -84,7 +82,7 @@ class TextEditor:
 
     def backspace(self):
         if( self.cursorPos > 0 and self.pointerY < self.list.size):
-            deleted = self.currentNode.data.delete(self.cursorPos - 1 )  # Delete the character before the cursor
+            deleted = self.currentNode.data.delete(self.cursorPos)  # Delete the character before the cursor
             self.undolist.append(deleted, self.cursorPos, self.currentNode, self.pointerY, True)
             
             self.cursorPos -= 1
@@ -99,6 +97,7 @@ class TextEditor:
 
     def pressReturn(self):
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
+        self.undolist.append("", 0, self.currentNode, self.pointerY, False)
         self.pointerY += 1
         self.cursorPos = 0
 
@@ -106,6 +105,8 @@ class TextEditor:
         self.pointerY += 1
         if self.pointerY >= self.list.size: # Creates new line if at the end
             self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
+            self.undolist.append("", 0, self.currentNode, self.pointerY, False)
+
         else:
             self.currentNode = self.currentNode.next
             self.cursorPos = min(self.cursorPos, len(self.currentNode.data.textContent()))    
@@ -146,7 +147,7 @@ class TextEditor:
             line_text = tempBuf.textContent()           
             self.pointerX = self.positionX + self.font.size(line_text[:self.cursorPos])[0]
             if self.pointerX > 950:  # If the line is too long, move to the next line
-                tempBuf.delete(self.cursorPos -1)  
+                tempBuf.delete(self.cursorPos)  
                 self.pointerY += 1
                 if self.pointerY >= self.list.size:
                     self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
@@ -168,6 +169,7 @@ class TextEditor:
             node = self.list.head   # Start with the head node
             row = 0
             while node:
+                
                 buffer = node.data  
                 text = buffer.textContent()
                 if text:
