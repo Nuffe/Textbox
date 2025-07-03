@@ -1,3 +1,6 @@
+from gap_buffer import gapBuffer  # Add this import at the top of your file if gapBuffer is defined elsewhere
+
+
 class Undo:
     def __init__(self, node):
         self.data = ""
@@ -55,18 +58,31 @@ class UndoList:
         undoObject = self.list.pop() 
         self.size -= 1 
 
-        if self.nodeList.contains(undoObject.node) is False:
-            undoObject.node = self.nodeList.append(undoObject.node.data)
 
-        if undoObject.delkey:
+        if undoObject.node.data.textContent() == "":
+            if undoObject.delkey:
+                print("restore node")
+                self.nodeList.insert_after(undoObject.node, gapBuffer(10))
+                return undoObject.cursorPos, undoObject.pointerY + 1, undoObject.node.next
+            else:
+                print("node is empty, removing")
+                nodePrevious = undoObject.node.prev
+                self.nodeList.remove(undoObject.node)   
+                return undoObject.cursorPos, undoObject.pointerY, nodePrevious
+
+        elif undoObject.delkey:
+            print("undoing delete")
             for length in (range(undoObject.deleteCount)):  
                 print(undoObject.data[length])
-                undoObject.node.data.insert(undoObject.cursorPos -1 , undoObject.data[length])
+                undoObject.node.data.insert(undoObject.cursorPos - 1 , undoObject.data[length])
             newPos = (undoObject.cursorPos + length)
+            print("pointerY: ", undoObject.pointerY)
         else:
+            print("undoing insert")
             for length in range(len(undoObject.data)):
-                undoObject.node.data.delete((undoObject.cursorPos -length))
+                undoObject.node.data.delete((undoObject.cursorPos - length))
             newPos = (undoObject.cursorPos - len(undoObject.data))
+            print("pointerY: ", undoObject.pointerY)
 
         self.undocalled = True
         return newPos, undoObject.pointerY, undoObject.node

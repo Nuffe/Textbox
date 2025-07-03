@@ -44,8 +44,10 @@ class TextEditor:
                 elif event.type == pygame.KEYDOWN:  
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
+                        self.printout()  # Debugging
                     elif event.key == pygame.K_RETURN:
                         self.pressReturn()
+                        self.printout()  # Debugging
                     elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.currentNode.data.clear()
                         self.cursorPos = 0
@@ -60,8 +62,10 @@ class TextEditor:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
                         self.pressDown()
+                        self.printout()  # Debugging
                     elif event.key == pygame.K_UP:
                         self.pressUp()
+                        self.printout()  # Debugging
                     elif event.key == pygame.K_LEFT:
                         self.pressLeft()
                     elif event.key == pygame.K_RIGHT:
@@ -94,6 +98,7 @@ class TextEditor:
             if(targetNode.data.textContent() == ""):
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
+                self.undolist.append("", 0, self.currentNode, self.pointerY, True)
 
     def pressReturn(self):
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
@@ -169,7 +174,6 @@ class TextEditor:
             node = self.list.head   # Start with the head node
             row = 0
             while node:
-                
                 buffer = node.data  
                 text = buffer.textContent()
                 if text:
@@ -258,3 +262,11 @@ class TextEditor:
         if  filename:
             self.save(filename)
     
+
+    def printout(self):
+        node = self.list.head
+        print("____________________________________________")
+        while node:
+            print("name: ", node, "data: ", node.data.textContent())
+            node = node.next
+        print("____________________________________________")
