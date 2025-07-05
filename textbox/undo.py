@@ -2,16 +2,15 @@ from gap_buffer import gapBuffer  # Add this import at the top of your file if g
 
 
 class Undo:
-    def __init__(self, node):
-        self.data = ""
-        self.cursorPos = 0
+    def __init__(self, node, op_type):
         self.node = node
+        self.op_type = op_type
+        self.data = ""
         self.delkey = False
         self.deleteCount = 0
+        self.cursorPos = 0
         self.pointerY = 0
 
-    def append(self, char):
-        self.data = self.data + char
 
 
 # Note:
@@ -25,25 +24,32 @@ class Undo:
 class UndoList:
     def __init__(self, node, nodeList):
         self.nodeList = nodeList
-        self.list = [Undo(node)]
+        self.list = [Undo(node, "insert_char")]
         self.size = 1
-        self.undocalled = False
+        self.undoCalled = False
         self.headNode = node
 
-    def append(self, char, cursorPos, node, pointerY, delkey):
-        print("self.size:" + str(self.size))
-        print("calc len: " + str(len(self.list)))
+    def append(self, char, cursorPos, node, pointerY, delkey, op_type):
         if not self.list or self.size != len(self.list):
-            self.list.append(Undo(node))
+            self.list.append(Undo(node, "insert_char"))
             self.size = len(self.list)
-        # If spacebar is pressed or user writes to a new line move onto next undo object
-        if char == " " or node != self.list[self.size -1].node or self.undocalled or delkey != self.list[self.size -1].delkey:
-            self.list.append(Undo(node))
-            self.size = len(self.list)
-            self.undocalled = False
 
-        undo = self.list[self.size -1]
-        undo.append(char)
+        undo = self.list[-1]
+        collection = (
+            op_type != undo.op_type
+            or node is not undo.node
+            or self.undoCalled
+        )
+        
+        # If spacebar is pressed or user writes to a new line move onto next undo object
+        if collection and undo.data:
+            self.list.append(Undo(node, op_type))
+            self.size = len(self.list)
+            self.undoCalled = False
+        
+        undo = self.list[-1] 
+        undo.data += char
+        undo.op_type = op_type
         undo.cursorPos = cursorPos
         undo.pointerY = pointerY
         undo.delkey = delkey
@@ -52,20 +58,14 @@ class UndoList:
 
 
     def undoAction(self):
-        print("undo called")
-        if self.list is None or self.size <= 0:
-            print("nothing to undo")
-            return 0, 0, self.headNode
         undoObject = self.list.pop()
         self.size -= 1
 
-        if undoObject.node.data.textContent() == "" and undoObject.data == "":
-            if undoObject.delkey:
-                print("restore node")
+        if undoObject.op_type == "delete_line":
                 newNode = self.nodeList.insert_after(undoObject.node, gapBuffer(10))
                 return undoObject.cursorPos, undoObject.pointerY + 1, newNode
-            else:
-                print("node is empty, removing")
+        
+        elif undoObject.op_type == "add_line":
                 nodePrevious = undoObject.node.prev
                 self.nodeList.remove(undoObject.node)
                 if nodePrevious:
@@ -75,15 +75,21 @@ class UndoList:
                 else:
                     new_current = self.nodeList.append(gapBuffer(10))
                 return undoObject.cursorPos, undoObject.pointerY, new_current
-        elif undoObject.delkey:
-            print("undoing delete")
+        
+        elif undoObject.op_type == "delete_char":
             for i, char in enumerate(undoObject.data):
-                undoObject.node.data.insert(undoObject.cursorPos - 1 + i, char)
+                undoObject.node.data.insert(undoObject.cursorPos -1 + i, char)
             newPos = undoObject.cursorPos + len(undoObject.data) -1
+
+        elif undoObject.op_type in ("insert_char", "insert_space"):
+            # delete each char you previously inserted
+            for i in undoObject.data:
+                undoObject.node.data.delete(undoObject.cursorPos - 1)
+            newPos = undoObject.cursorPos - len(undoObject.data)
+
         else:
-            print("undoing insert")
-            for length in range(len(undoObject.data)):
-                undoObject.node.data.delete((undoObject.cursorPos - length))
-            newPos = (undoObject.cursorPos - len(undoObject.data))
-        self.undocalled = True
+            # safety fallback
+            return undoObject.cursorPos, undoObject.pointerY, undoObject.node
+
+        self.undoCalled = True
         return newPos, undoObject.pointerY, undoObject.node

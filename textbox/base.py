@@ -86,8 +86,10 @@ class TextEditor:
 
     def backspace(self):
         if( self.cursorPos > 0 and self.pointerY < self.list.size):
+            old_cursor = self.cursorPos
+            old_lineY   = self.pointerY
             deleted = self.currentNode.data.delete(self.cursorPos)  # Delete the character before the cursor
-            self.undolist.append(deleted, self.cursorPos, self.currentNode, self.pointerY, True)
+            self.undolist.append(deleted, old_cursor, self.currentNode, old_lineY, True, "delete_char")
             
             self.cursorPos -= 1
         elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
@@ -98,19 +100,24 @@ class TextEditor:
             if(targetNode.data.textContent() == ""):
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
-                self.undolist.append("", 0, self.currentNode, self.pointerY, True)
+                self.undolist.append("", 0, self.currentNode, self.pointerY, True, "delete_line")
 
     def pressReturn(self):
+        old_cursor = self.cursorPos
+        old_line   = self.pointerY
+
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-        self.undolist.append("", 0, self.currentNode, self.pointerY, False)
+        self.undolist.append("", old_cursor, self.currentNode, old_line, False, "add_line")
         self.pointerY += 1
         self.cursorPos = 0
 
     def pressDown(self):
+        old_cursor = self.cursorPos
+        old_line   = self.pointerY
         self.pointerY += 1
         if self.pointerY >= self.list.size: # Creates new line if at the end
             self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-            self.undolist.append("", 0, self.currentNode, self.pointerY, False)
+            self.undolist.append("", old_cursor, self.currentNode, old_line, False, "add_line")
 
         else:
             self.currentNode = self.currentNode.next
@@ -145,6 +152,9 @@ class TextEditor:
                 self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
             self.currentNode.data.insert(self.cursorPos, character)
             self.cursorPos += 1
+            old_cursor = self.cursorPos
+            old_lineY   = self.pointerY
+
 
             # Stop overflowing the line
             # Get new X value based on the new character
@@ -159,7 +169,7 @@ class TextEditor:
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
-            self.undolist.append(character, self.cursorPos, self.currentNode, self.pointerY, False)
+            self.undolist.append(character, old_cursor, self.currentNode, old_lineY, False, op_type=("insert_space" if character == " " else "insert_char"))
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line
