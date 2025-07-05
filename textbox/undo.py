@@ -15,9 +15,10 @@ class Undo:
 
 
 # Note:
-#   Deleting part is almost dont, one error when deleting right after undoing a delete action
-# Think it might have something to do with cursor pos, but not sure.
-# Hard to recreate some times
+#  Things to fix:   -Weird behaviour when undoing twice on a node that has been deleted
+#                   - when undoing text and then a node, the cursor position is not correct
+#                   - Undoing on empty crashes
+#    
 #   Redo is also left
 
 
@@ -50,39 +51,39 @@ class UndoList:
             undo.deleteCount += 1
 
 
-
     def undoAction(self):
+        print("undo called")
         if self.list is None or self.size <= 0:
             print("nothing to undo")
             return 0, 0, self.headNode
-        undoObject = self.list.pop() 
-        self.size -= 1 
+        undoObject = self.list.pop()
+        self.size -= 1
 
-
-        if undoObject.node.data.textContent() == "":
+        if undoObject.node.data.textContent() == "" and undoObject.data == "":
             if undoObject.delkey:
                 print("restore node")
-                self.nodeList.insert_after(undoObject.node, gapBuffer(10))
-                return undoObject.cursorPos, undoObject.pointerY + 1, undoObject.node.next
+                newNode = self.nodeList.insert_after(undoObject.node, gapBuffer(10))
+                return undoObject.cursorPos, undoObject.pointerY + 1, newNode
             else:
                 print("node is empty, removing")
                 nodePrevious = undoObject.node.prev
-                self.nodeList.remove(undoObject.node)   
-                return undoObject.cursorPos, undoObject.pointerY, nodePrevious
-
+                self.nodeList.remove(undoObject.node)
+                if nodePrevious:
+                    new_current = nodePrevious
+                elif self.nodeList.head: 
+                    new_current = self.nodeList.head
+                else:
+                    new_current = self.nodeList.append(gapBuffer(10))
+                return undoObject.cursorPos, undoObject.pointerY, new_current
         elif undoObject.delkey:
             print("undoing delete")
-            for length in (range(undoObject.deleteCount)):  
-                print(undoObject.data[length])
-                undoObject.node.data.insert(undoObject.cursorPos - 1 , undoObject.data[length])
-            newPos = (undoObject.cursorPos + length)
-            print("pointerY: ", undoObject.pointerY)
+            for i, char in enumerate(undoObject.data):
+                undoObject.node.data.insert(undoObject.cursorPos - 1 + i, char)
+            newPos = undoObject.cursorPos + len(undoObject.data) -1
         else:
             print("undoing insert")
             for length in range(len(undoObject.data)):
                 undoObject.node.data.delete((undoObject.cursorPos - length))
             newPos = (undoObject.cursorPos - len(undoObject.data))
-            print("pointerY: ", undoObject.pointerY)
-
         self.undocalled = True
         return newPos, undoObject.pointerY, undoObject.node
