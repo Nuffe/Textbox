@@ -6,20 +6,8 @@ class Undo:
         self.node = node
         self.op_type = op_type
         self.data = ""
-        self.delkey = False
-        self.deleteCount = 0
         self.cursorPos = 0
         self.pointerY = 0
-
-
-
-# Note:
-#  Things to fix:   -Weird behaviour when undoing twice on a node that has been deleted
-#                   - when undoing text and then a node, the cursor position is not correct
-#                   - Undoing on empty crashes
-#    
-#   Redo is also left
-
 
 class UndoList:
     def __init__(self, node, nodeList):
@@ -29,66 +17,63 @@ class UndoList:
         self.undoCalled = False
         self.headNode = node
 
-    def append(self, char, cursorPos, node, pointerY, delkey, op_type):
-        if not self.list or self.size != len(self.list):
-            self.list.append(Undo(node, "insert_char"))
-            self.size = len(self.list)
-
-        undo = self.list[-1]
-        collection = (
-            op_type != undo.op_type
-            or node is not undo.node
-            or self.undoCalled
-        )
-        
-        # If spacebar is pressed or user writes to a new line move onto next undo object
-        if collection and undo.data:
+    def append(self, char, cursorPos, node, pointerY, op_type):
+        last = self.list[-1] if self.list else None
+        newUndo = ( # Condition to determine if a new undo object should be made
+            self.undoCalled 
+            or last is None 
+            or op_type is not last.op_type 
+            or node is not last.node )
+        if newUndo: 
             self.list.append(Undo(node, op_type))
             self.size = len(self.list)
             self.undoCalled = False
-        
-        undo = self.list[-1] 
-        undo.data += char
-        undo.op_type = op_type
+
+        # Adds all the data to the last undo object
+        undo = self.list[-1]
+        undo.data      += char
+        undo.op_type   = op_type
         undo.cursorPos = cursorPos
-        undo.pointerY = pointerY
-        undo.delkey = delkey
-        if delkey:
-            undo.deleteCount += 1
+        undo.pointerY  = pointerY
 
-
+        
     def undoAction(self):
         undoObject = self.list.pop()
         self.size -= 1
-
+        
         if undoObject.op_type == "delete_line":
+                # Adds a new line back to the nodeList
                 newNode = self.nodeList.insert_after(undoObject.node, gapBuffer(10))
                 return undoObject.cursorPos, undoObject.pointerY + 1, newNode
         
         elif undoObject.op_type == "add_line":
+                # Removes the last created line from the list
                 nodePrevious = undoObject.node.prev
                 self.nodeList.remove(undoObject.node)
                 if nodePrevious:
                     new_current = nodePrevious
                 elif self.nodeList.head: 
                     new_current = self.nodeList.head
-                else:
-                    new_current = self.nodeList.append(gapBuffer(10))
                 return undoObject.cursorPos, undoObject.pointerY, new_current
         
         elif undoObject.op_type == "delete_char":
+            # Puts back the deleted characters
             for i, char in enumerate(undoObject.data):
-                undoObject.node.data.insert(undoObject.cursorPos -1 + i, char)
+                undoObject.node.data.insert(undoObject.cursorPos -1, char)
             newPos = undoObject.cursorPos + len(undoObject.data) -1
 
         elif undoObject.op_type in ("insert_char", "insert_space"):
-            # delete each char you previously inserted
-            for i in undoObject.data:
-                undoObject.node.data.delete(undoObject.cursorPos - 1)
-            newPos = undoObject.cursorPos - len(undoObject.data)
+            # Deletes the last added character
+            data = undoObject.data
+            start = undoObject.cursorPos
+            for char in data:
+                undoObject.node.data.delete(start)
+                start -= 1
+            newPos = start
+            undoObject.cursorPos = newPos
 
         else:
-            # safety fallback
+            # fallback if nothing triggers
             return undoObject.cursorPos, undoObject.pointerY, undoObject.node
 
         self.undoCalled = True

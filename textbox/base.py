@@ -44,10 +44,10 @@ class TextEditor:
                 elif event.type == pygame.KEYDOWN:  
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
-                        self.printout()  # Debugging
+                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_RETURN:
                         self.pressReturn()
-                        self.printout()  # Debugging
+                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.currentNode.data.clear()
                         self.cursorPos = 0
@@ -62,10 +62,10 @@ class TextEditor:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
                         self.pressDown()
-                        self.printout()  # Debugging
+                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_UP:
                         self.pressUp()
-                        self.printout()  # Debugging
+                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_LEFT:
                         self.pressLeft()
                     elif event.key == pygame.K_RIGHT:
@@ -89,7 +89,7 @@ class TextEditor:
             old_cursor = self.cursorPos
             old_lineY   = self.pointerY
             deleted = self.currentNode.data.delete(self.cursorPos)  # Delete the character before the cursor
-            self.undolist.append(deleted, old_cursor, self.currentNode, old_lineY, True, "delete_char")
+            self.undolist.append(deleted, old_cursor, self.currentNode, old_lineY, "delete_char")
             
             self.cursorPos -= 1
         elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
@@ -100,14 +100,14 @@ class TextEditor:
             if(targetNode.data.textContent() == ""):
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
-                self.undolist.append("", 0, self.currentNode, self.pointerY, True, "delete_line")
+                self.undolist.append("", 0, self.currentNode, self.pointerY, "delete_line")
 
     def pressReturn(self):
         old_cursor = self.cursorPos
         old_line   = self.pointerY
 
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-        self.undolist.append("", old_cursor, self.currentNode, old_line, False, "add_line")
+        self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
         self.pointerY += 1
         self.cursorPos = 0
 
@@ -117,7 +117,7 @@ class TextEditor:
         self.pointerY += 1
         if self.pointerY >= self.list.size: # Creates new line if at the end
             self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-            self.undolist.append("", old_cursor, self.currentNode, old_line, False, "add_line")
+            self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
 
         else:
             self.currentNode = self.currentNode.next
@@ -148,28 +148,29 @@ class TextEditor:
     def write(self, event):
         character = event.unicode       
         if character:
+
             if self.pointerY >= self.list.size:
                 self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
             self.currentNode.data.insert(self.cursorPos, character)
-            self.cursorPos += 1
-            old_cursor = self.cursorPos
             old_lineY   = self.pointerY
-
-
+            self.cursorPos += 1
+    
             # Stop overflowing the line
             # Get new X value based on the new character
             tempBuf = self.currentNode.data
             line_text = tempBuf.textContent()           
             self.pointerX = self.positionX + self.font.size(line_text[:self.cursorPos])[0]
             if self.pointerX > 950:  # If the line is too long, move to the next line
-                tempBuf.delete(self.cursorPos)  
+                tempBuf.delete(self.cursorPos -1)  
                 self.pointerY += 1
                 if self.pointerY >= self.list.size:
                     self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
                 self.cursorPos = 0
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
-            self.undolist.append(character, old_cursor, self.currentNode, old_lineY, False, op_type=("insert_space" if character == " " else "insert_char"))
+            new_cursor = self.cursorPos
+            self.undolist.append(character, new_cursor, self.currentNode, old_lineY, op_type=("insert_space" if character == " " else "insert_char"))
+            print("insert_char:", repr(character), self.cursorPos, self.pointerY)
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line
