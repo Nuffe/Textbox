@@ -50,11 +50,14 @@ class UndoList:
             return undoObject.cursorPos, undoObject.pointerY, newNode
 
         elif undoObject.op_type == "add_line":
-            # Removes the last created line from the list
-            inserted = undoObject.node
-            self.nodeList.remove(inserted)
-            new_current = inserted.prev or self.nodeList.head
-            return undoObject.cursorPos, undoObject.pointerY, new_current
+                # Removes the last created line from the list
+                nodePrevious = undoObject.node.prev
+                self.nodeList.remove(undoObject.node)
+                if nodePrevious:
+                    new_current = nodePrevious
+                elif self.nodeList.head: 
+                    new_current = self.nodeList.head
+                return undoObject.cursorPos, undoObject.pointerY, new_current
         
         elif undoObject.op_type == "delete_char":
             # Puts back the deleted characters
