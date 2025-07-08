@@ -4,6 +4,8 @@ from gap_buffer import gapBuffer  # Add this import at the top of your file if g
 class Undo:
     def __init__(self, node, op_type):
         self.node = node
+        self.prev = node.prev if node else None
+        self.next = node.next if node else None
         self.op_type = op_type
         self.data = ""
         self.cursorPos = 0
@@ -40,21 +42,19 @@ class UndoList:
     def undoAction(self):
         undoObject = self.list.pop()
         self.size -= 1
-        
         if undoObject.op_type == "delete_line":
                 # Adds a new line back to the nodeList
-                newNode = self.nodeList.insert_after(undoObject.node, gapBuffer(10))
-                return undoObject.cursorPos, undoObject.pointerY + 1, newNode
-        
+            newNode = self.nodeList.insert_oldNode_after(undoObject.prev, undoObject.node)
+            undoObject.pointerY += 1
+            undoObject.cursorPos = 0
+            return undoObject.cursorPos, undoObject.pointerY, newNode
+
         elif undoObject.op_type == "add_line":
-                # Removes the last created line from the list
-                nodePrevious = undoObject.node.prev
-                self.nodeList.remove(undoObject.node)
-                if nodePrevious:
-                    new_current = nodePrevious
-                elif self.nodeList.head: 
-                    new_current = self.nodeList.head
-                return undoObject.cursorPos, undoObject.pointerY, new_current
+            # Removes the last created line from the list
+            inserted = undoObject.node
+            self.nodeList.remove(inserted)
+            new_current = inserted.prev or self.nodeList.head
+            return undoObject.cursorPos, undoObject.pointerY, new_current
         
         elif undoObject.op_type == "delete_char":
             # Puts back the deleted characters
@@ -75,6 +75,5 @@ class UndoList:
         else:
             # fallback if nothing triggers
             return undoObject.cursorPos, undoObject.pointerY, undoObject.node
-
         self.undoCalled = True
         return newPos, undoObject.pointerY, undoObject.node

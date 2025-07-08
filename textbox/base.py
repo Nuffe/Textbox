@@ -44,13 +44,11 @@ class TextEditor:
                 elif event.type == pygame.KEYDOWN:  
                     if event.key == pygame.K_BACKSPACE:
                         self.backspace()
-                        #self.printOut()  # Debugging
+                        
                     elif event.key == pygame.K_RETURN:
                         self.pressReturn()
-                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_c and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.currentNode.data.clear()
-                        self.cursorPos = 0
+                        self.printout()  # Debugging
                     elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         if self.filename != "":
                             self.save(self.filename)
@@ -62,10 +60,8 @@ class TextEditor:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
                         self.pressDown()
-                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_UP:
                         self.pressUp()
-                        #self.printOut()  # Debugging
                     elif event.key == pygame.K_LEFT:
                         self.pressLeft()
                     elif event.key == pygame.K_RIGHT:
@@ -98,9 +94,9 @@ class TextEditor:
             self.pointerY   -= 1
             self.currentNode = prev_node
             if(targetNode.data.textContent() == ""):
+                self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
-                self.undolist.append("", 0, self.currentNode, self.pointerY, "delete_line")
 
     def pressReturn(self):
         old_cursor = self.cursorPos
@@ -170,7 +166,6 @@ class TextEditor:
                 self.cursorPos = 1
             new_cursor = self.cursorPos
             self.undolist.append(character, new_cursor, self.currentNode, old_lineY, op_type=("insert_space" if character == " " else "insert_char"))
-            print("insert_char:", repr(character), self.cursorPos, self.pointerY)
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line

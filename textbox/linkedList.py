@@ -36,6 +36,23 @@ class LineList:
         node.next         = new_node
         self.size        += 1
         return new_node
+    
+    # Custom for inserting and old node, specificly for undo functionality
+    def insert_oldNode_after(self, node, old_node):
+        if old_node is None:
+            print("Error: The given node is None")
+            return
+        new_node = old_node
+        new_node.prev = node
+        new_node.next = node.next
+        if node.next:
+            node.next.prev = new_node
+        else:
+            self.tail      = new_node
+        node.next         = new_node
+        self.size        += 1
+        return new_node
+
 
     def remove(self, node):
         if node.prev:
@@ -59,3 +76,9 @@ class LineList:
                 return True
             current = current.next
         return False
+
+    def __iter__(self):
+        cur = self.head
+        while cur:
+            yield cur
+            cur = cur.next
