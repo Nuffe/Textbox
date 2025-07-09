@@ -55,7 +55,8 @@ class TextEditor:
                     elif event.key == pygame.K_f and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         self.loadDialog()
                     elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                        self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction()
+                        if( self.undolist.size > 0):
+                            self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
@@ -203,7 +204,7 @@ class TextEditor:
 
 
     def load(self, filename):
-        self.list = LineList()
+        self.list.clear()  # Clear the existing list
         self.currentNode = self.list.append(gapBuffer(10))
         count = 0
         self.cursorPos = 0
@@ -268,7 +269,6 @@ class TextEditor:
         if  filename:
             self.save(filename)
     
-
     def printout(self):
         node = self.list.head
         print("____________________________________________")

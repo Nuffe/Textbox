@@ -82,3 +82,8 @@ class LineList:
         while cur:
             yield cur
             cur = cur.next
+
+    def clear(self):
+        self.head = None
+        self.tail = None
+        self.size = 0   
