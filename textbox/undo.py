@@ -28,7 +28,15 @@ class UndoList:
             or last is None 
             or op_type is not last.op_type 
             or node is not last.node )
-        if newUndo: 
+
+        cursorMove = False
+        if cursorPos != last.cursorPos + (
+            1 if op_type == "insert_char" else 
+            -1 if op_type == "delete_char" else 0
+        ):
+            cursorMove = True
+
+        if newUndo or cursorMove: 
             self.list.append(Undo(node, op_type))
             self.size = len(self.list)
             self.undoCalled = False
