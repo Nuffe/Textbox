@@ -18,9 +18,11 @@ class UndoList:
         self.size = 1
         self.undoCalled = False
         self.headNode = node
+        self.redoList = []
 
     def append(self, char, cursorPos, node, pointerY, op_type):
         last = self.list[-1] if self.list else None
+        self.redoList = [] # Reseting Redo
         newUndo = ( # Condition to determine if a new undo object should be made
             self.undoCalled 
             or last is None 
@@ -39,9 +41,7 @@ class UndoList:
         undo.pointerY  = pointerY
 
         
-    def undoAction(self):
-        undoObject = self.list.pop()
-        self.size -= 1
+    def undoAction(self, undoObject):
         if undoObject.op_type == "delete_line":
                 # Adds a new line back to the nodeList
             newNode = self.nodeList.insert_oldNode_after(undoObject.prev, undoObject.node)
@@ -80,3 +80,20 @@ class UndoList:
             return undoObject.cursorPos, undoObject.pointerY, undoObject.node
         self.undoCalled = True
         return newPos, undoObject.pointerY, undoObject.node
+    
+
+    def redo(self):
+        redoObject = self.redoList.pop()
+        if redoObject.op_type == "insert_char" or redoObject.op_type == "insert_space":
+            redoObject.op_type = "delete_char"
+        elif redoObject.op_type == "delete_char":
+            redoObject.op_type = "insert_char"
+        elif redoObject.op_type == "delete_line":
+            redoObject.op_type = "add_line"
+        elif redoObject.op_type == "add_line":
+            redoObject.op_type = "delete_line"
+
+        print("redoObject:", redoObject.data)
+        newPos, pointerY, node = self.undoAction(redoObject)
+        return newPos, pointerY, node  
+

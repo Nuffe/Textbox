@@ -56,7 +56,12 @@ class TextEditor:
                         self.loadDialog()
                     elif event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
                         if( self.undolist.size > 0):
-                            self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction()
+                            undoObject = self.undolist.list.pop()
+                            self.undolist.redoList.append(undoObject)
+                            self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction(undoObject)
+                            self.undolist.size -= 1
+                    elif event.key == pygame.K_y and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                            self.cursorPos, self.pointerY, self.currentNode = self.undolist.redo()
                     elif event.key == pygame.K_ESCAPE:
                         self.running = False
                     elif event.key == pygame.K_DOWN:
