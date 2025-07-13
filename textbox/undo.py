@@ -29,12 +29,14 @@ class UndoList:
             or op_type is not last.op_type 
             or node is not last.node )
 
-        cursorMove = False
-        if cursorPos != last.cursorPos + (
-            1 if op_type == "insert_char" else 
-            -1 if op_type == "delete_char" else 0
-        ):
-            cursorMove = True
+        if not newUndo:
+            cursorMove = False
+            if cursorPos != last.cursorPos + (
+                1 if op_type == "insert_char" else 
+                -1 if op_type == "delete_char" else 0
+            ):
+                cursorMove = True
+
 
         if newUndo or cursorMove: 
             self.list.append(Undo(node, op_type))
@@ -50,7 +52,7 @@ class UndoList:
 
         
     def undoAction(self, undoObject):
-
+        self.redoList.append(undoObject)
         if undoObject.op_type == "Head":
             # If the head is called, return the current position and node
             return 0, 0, self.nodeList.head
@@ -78,6 +80,8 @@ class UndoList:
             for i, char in enumerate(undoObject.data):
                 undoObject.node.data.insert(undoObject.cursorPos -1, char)
             newPos = undoObject.cursorPos + len(undoObject.data) -1
+            undoObject.cursorPos = newPos
+            undoObject.node.data.move_position(newPos)
 
         elif undoObject.op_type in ("insert_char", "insert_space"):
             # Deletes the last added character
@@ -88,6 +92,7 @@ class UndoList:
                 start -= 1
             newPos = start
             undoObject.cursorPos = newPos
+            undoObject.node.data.move_position(newPos)
 
         else:
             # fallback if nothing triggers
@@ -98,27 +103,29 @@ class UndoList:
 
     def redo(self):
         redoObject = self.redoList.pop()
-        print("redo", redoObject.data)
-        print("redo cursor: ", redoObject.cursorPos)
-        print("redo pointerY: ", redoObject.pointerY)
-        
         if redoObject.op_type == "insert_char" or redoObject.op_type == "insert_space":
             for char in reversed(redoObject.data):
                 redoObject.node.data.insert(redoObject.cursorPos , char)
             newPos = redoObject.cursorPos + len(redoObject.data)
-            redoObject.cursorPos = newPos
-                
-        elif redoObject.op_type == "delete_char":
-    
-            for i, char in enumerate(redoObject.data):
-                redoObject.node.data.delete(i)
-     
+            redoObject.cursorPos = newPos  
+            redoObject.node.data.move_position(newPos)
 
+        elif redoObject.op_type == "delete_char":
+            for i in range(len(redoObject.data)):
+                char = redoObject.node.data.delete(redoObject.cursorPos)
+                print("deleted char redo: ", char)
+                redoObject.cursorPos -= 1
+            newPos = redoObject.cursorPos
+            redoObject.node.data.move_position(newPos)
+    
         elif redoObject.op_type == "delete_line":
             redoObject.op_type = "add_line"
         elif redoObject.op_type == "add_line":
             redoObject.op_type = "delete_line"
 
+
+        # Ändrar något i redo som undo inte gillar och det blir baklänges
+        self.list.append(redoObject)
         print("redoObject:", redoObject.data)
         return redoObject.cursorPos, redoObject.pointerY, redoObject.node  
 
