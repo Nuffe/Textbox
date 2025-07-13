@@ -103,20 +103,19 @@ class TextEditor:
         elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
             targetNode = self.currentNode
             prev_node = self.currentNode.prev
-            self.pointerY   -= 1
             self.currentNode = prev_node
             if(targetNode.data.textContent() == ""):
                 self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
-
+            self.pointerY   -= 1
+            
     def pressReturn(self):
         old_cursor = self.cursorPos
-        old_line   = self.pointerY
-
+        old_line   = self.pointerY + 1
+        self.pointerY += 1
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
-        self.pointerY += 1
         self.cursorPos = 0
 
     def pressDown(self):
