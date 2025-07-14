@@ -108,6 +108,19 @@ class TextEditor:
                 self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
+            else:
+                currentData = targetNode.data
+                prevData = prev_node.data if prev_node else self.list.head.data
+                line_text = currentData.textContent() + prevData.textContent()    
+                tempPointerX = self.positionX + self.font.size(line_text)[0]
+
+                tempData = targetNode.data.textContent()
+                if tempPointerX < 950:
+                    # self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
+                    self.list.remove(targetNode)
+                    prev_node.data.insert(len(prev_node.data.textContent()), tempData)
+                self.cursorPos = len(self.currentNode.data.textContent())
+
             self.pointerY   -= 1
             
     def pressReturn(self):
