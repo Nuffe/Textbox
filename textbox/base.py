@@ -119,16 +119,27 @@ class TextEditor:
                     # self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
                     self.list.remove(targetNode)
                     prev_node.data.insert(len(prev_node.data.textContent()), tempData)
-                self.cursorPos = len(self.currentNode.data.textContent())
+                self.cursorPos = len(prev_node.data.textContent()) - len(tempData)
 
             self.pointerY   -= 1
             
     def pressReturn(self):
+
+        textData = self.currentNode.data.textContent() if self.currentNode else ""
+        textTransfer = textData[self.cursorPos:]
+        print("textTransfer: ", textTransfer)
+
+        for char in textTransfer:
+            self.currentNode.data.delete(len(self.currentNode.data.textContent()))  # Remove the character from the current line
+            self.cursorPos -= 1
+            
         old_cursor = self.cursorPos
         old_line   = self.pointerY + 1
         self.pointerY += 1
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
+        self.currentNode.data.insert(0, textTransfer)  # Insert the remaining text into the new line
         self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
+        # --------------------------------------------------------------------
         self.cursorPos = 0
 
     def pressDown(self):
