@@ -97,7 +97,7 @@ class TextEditor:
             old_cursor = self.cursorPos
             old_lineY   = self.pointerY
             deleted = self.currentNode.data.delete(self.cursorPos)  # Delete the character before the cursor
-            self.undolist.append(deleted, old_cursor, self.currentNode, old_lineY, "delete_char")
+            self.undolist.append(deleted, old_cursor, self.currentNode, old_lineY, "addChar")
             
             self.cursorPos -= 1
         elif self.pointerY > 0: # Jumps up a line if at start, and remove node if empty
@@ -105,7 +105,7 @@ class TextEditor:
             prev_node = self.currentNode.prev
             self.currentNode = prev_node
             if(targetNode.data.textContent() == ""):
-                self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
+                self.undolist.append("", 0, targetNode, self.pointerY, "addLine")
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
             else:
@@ -127,9 +127,8 @@ class TextEditor:
 
         textData = self.currentNode.data.textContent() if self.currentNode else ""
         textTransfer = textData[self.cursorPos:]
-        print("textTransfer: ", textTransfer)
 
-        for char in textTransfer:
+        for i in textTransfer:
             self.currentNode.data.delete(len(self.currentNode.data.textContent()))  # Remove the character from the current line
             self.cursorPos -= 1
             
@@ -138,8 +137,10 @@ class TextEditor:
         self.pointerY += 1
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         self.currentNode.data.insert(0, textTransfer)  # Insert the remaining text into the new line
-        self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
-        # --------------------------------------------------------------------
+        if len(textTransfer) > 1:
+            self.undolist.append(textTransfer, len(textData), self.currentNode, old_line, "enterJump")
+        else:
+            self.undolist.append("", old_cursor, self.currentNode, old_line, "undoLine")
         self.cursorPos = 0
 
     def pressDown(self):
@@ -148,7 +149,7 @@ class TextEditor:
         self.pointerY += 1
         if self.pointerY >= self.list.size: # Creates new line if at the end
             self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-            self.undolist.append("", old_cursor, self.currentNode, old_line, "add_line")
+            self.undolist.append("", old_cursor, self.currentNode, old_line, "undoLine")
 
         else:
             self.currentNode = self.currentNode.next
@@ -200,7 +201,7 @@ class TextEditor:
                 self.currentNode.data.insert(self.cursorPos, character) 
                 self.cursorPos = 1
             new_cursor = self.cursorPos
-            self.undolist.append(character, new_cursor, self.currentNode, old_lineY, op_type=("insert_space" if character == " " else "insert_char"))
+            self.undolist.append(character, new_cursor, self.currentNode, old_lineY, op_type=("undoSpace" if character == " " else "undoChar"))
 
     def textCursor(self):
         bufferText = self.currentNode.data.textContent()  # Get the text content of the current line

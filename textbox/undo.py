@@ -34,8 +34,8 @@ class UndoList:
         if not newUndo:
             cursorMove = False
             if cursorPos != last.cursorPos + (
-                1 if op_type == "insert_char" else 
-                -1 if op_type == "delete_char" else 0
+                1 if op_type == "undoChar" else 
+                -1 if op_type == "addChar" else 0
             ):
                 cursorMove = True
 
@@ -63,16 +63,16 @@ class UndoList:
             return 0, 0, self.nodeList.head
         baseY = undoObject.pointerY
 
-        if undoObject.op_type == "delete_line":
+        if undoObject.op_type == "addLine":
             cursorPos, newY, newNode = self.addLine(undoObject)
 
-        elif undoObject.op_type == "add_line":
+        elif undoObject.op_type == "undoLine":
             cursorPos, newY, newNode = self.deleteLine(undoObject)
 
-        elif undoObject.op_type == "delete_char":
+        elif undoObject.op_type == "addChar":
             cursorPos, newY, newNode = self.addText(undoObject)
 
-        elif undoObject.op_type in ("insert_char", "insert_space"):
+        elif undoObject.op_type in ("undoChar", "undoSpace"):
             cursorPos, newY, newNode = self.undoText(undoObject)
         
         elif undoObject.op_type == "lineJumpUP":
@@ -85,6 +85,12 @@ class UndoList:
             self.undoText(undoObject)
             undoObject.node = node
             cursorPos, newY, newNode  = self.addLine(undoObject)
+        elif undoObject.op_type == "enterJump":
+            prev = undoObject.prev
+            self.deleteLine(undoObject)
+            undoObject.node = prev
+            cursorPos, newY, newNode  = self.addText(undoObject)
+            newY -= 1
 
         else:
             # fallback if nothing triggers
@@ -99,7 +105,7 @@ class UndoList:
         redoObject = self.redoList.pop()
 
         # Redo character insertion 
-        if redoObject.op_type in ("insert_char", "insert_space"):
+        if redoObject.op_type in ("undoChar", "undoSpace"):
             i = 0
             for char in redoObject.data:
                 redoObject.node.data.insert(redoObject.cursorPos + i, char)
@@ -112,7 +118,7 @@ class UndoList:
             return newPos, redoObject.pointerY, redoObject.node
 
         # Redo a character deletion
-        elif redoObject.op_type == "delete_char":
+        elif redoObject.op_type == "addChar":
             # move cursor one right (to the first char to delete)
             redoObject.cursorPos += 1
             for i in redoObject.data:
@@ -125,7 +131,7 @@ class UndoList:
             return newPos, redoObject.pointerY, redoObject.node
 
         # Redo the line undo just added
-        elif redoObject.op_type == "delete_line":
+        elif redoObject.op_type == "addLine":
             baseY = redoObject.pointerY
             node_to_remove = redoObject.node
             prev_node = node_to_remove.prev
@@ -140,7 +146,7 @@ class UndoList:
             return redoObject.cursorPos, baseY, new_current
 
         # Redo a the line that was just undone
-        elif redoObject.op_type == "add_line":
+        elif redoObject.op_type in ("undoLine"):
             new_node = self.nodeList.insert_oldNode_after(redoObject.prev, redoObject.node)
             newY = redoObject.pointerY 
             redoObject.cursorPos = 0
