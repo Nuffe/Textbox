@@ -116,7 +116,7 @@ class TextEditor:
 
                 tempData = targetNode.data.textContent()
                 if tempPointerX < 950:
-                    # self.undolist.append("", 0, targetNode, self.pointerY, "delete_line")
+                    self.undolist.append(tempData, len(line_text), targetNode, self.pointerY, "lineJumpUP")
                     self.list.remove(targetNode)
                     prev_node.data.insert(len(prev_node.data.textContent()), tempData)
                 self.cursorPos = len(prev_node.data.textContent()) - len(tempData)

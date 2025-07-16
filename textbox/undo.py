@@ -52,7 +52,10 @@ class UndoList:
         undo.cursorPos = cursorPos
         undo.pointerY  = pointerY
 
-        
+#------------------------------------------
+# look over op_type names, you keep confusing yourself
+#--------------------------------------------        
+
     def undoAction(self, undoObject):
         self.redoList.append(undoObject)
         if undoObject.op_type == "Head":
@@ -61,16 +64,27 @@ class UndoList:
         baseY = undoObject.pointerY
 
         if undoObject.op_type == "delete_line":
-            cursorPos, newY, newNode = self.deleteLine(undoObject)
+            cursorPos, newY, newNode = self.addLine(undoObject)
 
         elif undoObject.op_type == "add_line":
-            cursorPos, newY, newNode = self.addLine(undoObject)
+            cursorPos, newY, newNode = self.deleteLine(undoObject)
 
         elif undoObject.op_type == "delete_char":
             cursorPos, newY, newNode = self.addText(undoObject)
 
         elif undoObject.op_type in ("insert_char", "insert_space"):
             cursorPos, newY, newNode = self.undoText(undoObject)
+        
+        elif undoObject.op_type == "lineJumpUP":
+            # Undo the action of pressing back at the beginning of a line when text existed on the line
+
+            # Look over this node swap, parts seam unnesesary 
+            prev = undoObject.prev
+            node = undoObject.node
+            undoObject.node = prev
+            self.undoText(undoObject)
+            undoObject.node = node
+            cursorPos, newY, newNode  = self.addLine(undoObject)
 
         else:
             # fallback if nothing triggers
@@ -151,7 +165,7 @@ class UndoList:
         undoObject.node.data.move_position(newPos)
         return newPos, undoObject.pointerY, undoObject.node
     
-    def deleteLine(self, undoObject):
+    def addLine(self, undoObject):
         baseY = undoObject.pointerY
         newNode = self.nodeList.insert_oldNode_after(undoObject.prev, undoObject.node)
         if self.undoCalled:
@@ -160,7 +174,7 @@ class UndoList:
             newY = baseY
         return 0, newY, newNode
     
-    def addLine(self, undoObject):
+    def deleteLine(self, undoObject):
         # Removes the last created line from the list
         baseY = undoObject.pointerY
         nodePrevious = undoObject.node.prev
