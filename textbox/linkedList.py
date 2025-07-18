@@ -22,37 +22,41 @@ class LineList:
         return new_node
 
     def insert_after(self, node, buffer):
-        if node is None:
-            print("Error: The given node is None")
-            return
         new_node = Node(buffer)
-        new_node.prev = node
-        new_node.next = node.next
-        if node.next:
-            node.next.prev = new_node
+        if node is None:
+            # If list is empty, fix the list head and tail
+            new_node.next = self.head
+            if self.head:
+                self.head.prev = new_node
+            self.head = new_node
+            if self.tail is None:
+                self.tail = new_node
         else:
-            # we are at the tail and update it
-            self.tail      = new_node
-        node.next         = new_node
-        self.size        += 1
+            new_node.prev = node
+            new_node.next = node.next
+            if node.next:
+                node.next.prev = new_node
+            else:
+                # at tail
+                self.tail = new_node
+            node.next = new_node
+
+        self.size += 1
         return new_node
     
-    # Custom for inserting and old node, specificly for undo functionality
+    # Inserting previous existed node saved in undo/redo objects
     def insert_oldNode_after(self, node, old_node):
         if old_node is None:
-            print("Error: The given node is None")
-            return
-        new_node = old_node
-        new_node.prev = node
-        new_node.next = node.next
+            raise ValueError("Can't insert None")
+        old_node.prev = node
+        old_node.next = node.next
         if node.next:
-            node.next.prev = new_node
+            node.next.prev = old_node
         else:
-            self.tail      = new_node
-        node.next         = new_node
-        self.size        += 1
-        return new_node
-
+            self.tail = old_node
+        node.next = old_node
+        self.size += 1
+        return old_node
 
     def remove(self, node):
         if node.prev:

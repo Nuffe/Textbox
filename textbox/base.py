@@ -58,14 +58,15 @@ class TextEditor:
                         if( len(self.undolist.list) > 0):
                             print("Undoing..")
                             undoObject = self.undolist.list.pop()
-                            self.cursorPos, self.pointerY, self.currentNode = self.undolist.undoAction(undoObject)
-                            self.undolist.size -= 1
+                            self.cursorPos, self.pointerY, newNode = self.undolist.undoAction(undoObject)
+                            self.currentNode = newNode
                         else:
                             print("Nothing to undo")
                     elif event.key == pygame.K_y and pygame.key.get_mods() & pygame.KMOD_CTRL:
                             if( len(self.undolist.redoList) > 0):
                                 print("redoing..")
-                                self.cursorPos, self.pointerY, self.currentNode = self.undolist.redo()
+                                self.cursorPos, self.pointerY, newNode = self.undolist.redo()
+                                self.currentNode = newNode
                             else:
                                 print("Nothing to redo")
                     elif event.key == pygame.K_ESCAPE:
@@ -137,7 +138,7 @@ class TextEditor:
         self.pointerY += 1
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         self.currentNode.data.insert(0, textTransfer)  # Insert the remaining text into the new line
-        if len(textTransfer) > 1:
+        if len(textTransfer) > 0:
             self.undolist.append(textTransfer, len(textData), self.currentNode, old_line, "enterJump")
         else:
             self.undolist.append("", old_cursor, self.currentNode, old_line, "undoLine")
