@@ -77,25 +77,40 @@ class UndoList:
         elif undoObject.op_type in ("undoChar", "undoSpace"):
             cursorPos, newY, newNode = self.undoText(undoObject)
         
+
+        #----------------------
+        # Remake lineJumpUP and enterJump, so they dont rely on exisitn functons.
+        # ---------------------------
         elif undoObject.op_type == "lineJumpUP":
-            # Undo the action of pressing back at the beginning of a line when text existed on the line
-            # Look over this node swap, parts seam unnesesary 
-            prev = undoObject.prev
-            node = undoObject.node
-            undoObject.node = prev
-            self.undoText(undoObject)
-            undoObject.node = node
-            cursorPos, newY, newNode  = self.addLine(undoObject)
+            
+            print("lineJumpUp")
+            print("data: ", undoObject.data)
+            print("cursorPos: ", undoObject.cursorPos)
+            print("Y value: ", undoObject.pointerY)
+            print("Node: ", undoObject.node)
+
+            newPos = undoObject.cursorPos
+            for i in undoObject.data:
+                undoObject.node.data.delete(len(undoObject.node.data.textContent()))  # Remove the character from the current line
+                newPos -= 1
+            newNode = self.nodeList.insert_after(undoObject.node, gapBuffer(10))
+            newNode.data.insert(0, undoObject.data)
+            newY = undoObject.pointerY
+            cursorPos = 0
 
         elif undoObject.op_type == "enterJump":
-            prev = undoObject.prev
-            self.deleteLine(undoObject)
-            undoObject.node = prev
-            undoObject.data = undoObject.data[::-1]
-            cursorPos, newY, newNode  = self.addText(undoObject)
-            undoObject.data = undoObject.data[::-1]
-            newY -= 1
+            print("enterJump")
+            print("data: ", undoObject.data)
+            print("cursorPos: ", undoObject.cursorPos)
+            print("Y value: ", undoObject.pointerY)
+            print("Node: ", undoObject.node)
+            newNode = undoObject.node.prev
+            self.nodeList.remove(undoObject.node)
+            newNode.data.insert(len(newNode.data.textContent()), undoObject.data)
+            cursorPos = len(newNode.data.textContent()) - len(undoObject.data)
+            newY = undoObject.pointerY -1
 
+            
         else:
             # fallback if nothing triggers
             return undoObject.cursorPos, undoObject.pointerY, undoObject.node
@@ -157,6 +172,7 @@ class UndoList:
             self.list.append(redoObject)
             return redoObject.cursorPos, newY, new_node
         elif redoObject.op_type == "lineJumpUP":
+            print("redo lineJumpUP")
             prev = redoObject.prev
             self.deleteLine(redoObject)
             redoObject.cursorPos += 1
@@ -169,7 +185,7 @@ class UndoList:
             return cursorPos, newY, newNode 
         elif redoObject.op_type == "enterJump":
             # Look over all the node jumps, some might be superflous
-   
+            
             cursorPos, newY, newNode  = self.undoText(redoObject)
             newNode = self.nodeList.insert_after(newNode, gapBuffer(10))
             redoObject.node = newNode
@@ -211,7 +227,7 @@ class UndoList:
         baseY = undoObject.pointerY
         nodePrevious = undoObject.node.prev
         self.nodeList.remove(undoObject.node)
-        
+
         newY = baseY -1
         if nodePrevious:
             new_current = nodePrevious
