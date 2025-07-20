@@ -139,7 +139,7 @@ class TextEditor:
         self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
         self.currentNode.data.insert(0, textTransfer)  # Insert the remaining text into the new line
         if len(textTransfer) > 0:
-            self.undolist.append(textTransfer, len(textData), self.currentNode, old_line, "enterJump")
+            self.undolist.append(textTransfer, len(textData), self.currentNode.prev, old_line, "enterJump")
         else:
             self.undolist.append("", old_cursor, self.currentNode, old_line, "undoLine")
         self.cursorPos = 0
