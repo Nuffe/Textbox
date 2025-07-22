@@ -66,7 +66,12 @@ class TextEditor:
                             if( len(self.undolist.redoList) > 0):
                                 print("redoing..")
                                 self.cursorPos, self.pointerY, newNode = self.undolist.redo()
+                                if newNode in self.list:
+                                    print("Node is in list")
+                                else: 
+                                    print("node is not in list")
                                 self.currentNode = newNode
+
                             else:
                                 print("Nothing to redo")
                     elif event.key == pygame.K_ESCAPE:
@@ -106,43 +111,45 @@ class TextEditor:
             prev_node = self.currentNode.prev
             self.currentNode = prev_node
             if(targetNode.data.textContent() == ""):
+                print("base backspace empty")
                 self.undolist.append("", 0, targetNode, self.pointerY, "addLine")
                 self.list.remove(targetNode)
                 self.cursorPos = len(self.currentNode.data.textContent())
+                self.pointerY   -= 1
             else:
+                print("base backspace not empty")
                 currentData = targetNode.data
                 prevData = prev_node.data if prev_node else self.list.head.data
                 line_text = currentData.textContent() + prevData.textContent()    
                 tempPointerX = self.positionX + self.font.size(line_text)[0]
 
-                tempData = targetNode.data.textContent()
                 if tempPointerX < 950:
-                    self.undolist.append(tempData, len(line_text), prev_node, self.pointerY, "lineJumpUP") # Prev node becaus target gets removed
-                    self.list.remove(targetNode)
-                    prev_node.data.insert(len(prev_node.data.textContent()), tempData)
-                self.cursorPos = len(prev_node.data.textContent()) - len(tempData)
+                    if self.cursorPos == 0 and self.pointerY > 0:
+                        newPos, newY, newNode = self.undolist.doLineJoin(targetNode, self.cursorPos, self.pointerY)
+                        self.currentNode = newNode
+                        self.cursorPos   = newPos
+                        self.pointerY    = newY
 
-            self.pointerY   -= 1
+
             
     def pressReturn(self):
 
         textData = self.currentNode.data.textContent() if self.currentNode else ""
         textTransfer = textData[self.cursorPos:]
 
-        for i in textTransfer:
-            self.currentNode.data.delete(len(self.currentNode.data.textContent()))  # Remove the character from the current line
-            self.cursorPos -= 1
-            
-        old_cursor = self.cursorPos
-        old_line   = self.pointerY + 1
-        self.pointerY += 1
-        self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
-        self.currentNode.data.insert(0, textTransfer)  # Insert the remaining text into the new line
+         # Insert the remaining text into the new line
         if len(textTransfer) > 0:
-            self.undolist.append(textTransfer, len(textData), self.currentNode.prev, old_line, "enterJump")
+            newPos, newY, newNode = self.undolist.doEnterJump(self.currentNode, self.cursorPos, self.pointerY)
+            self.currentNode = newNode
+            self.cursorPos   = newPos
+            self.pointerY    = newY
         else:
+            old_cursor = self.cursorPos
+            old_line   = self.pointerY + 1
+            self.pointerY += 1
+            self.currentNode = self.list.insert_after(self.currentNode, gapBuffer(10))
             self.undolist.append("", old_cursor, self.currentNode, old_line, "undoLine")
-        self.cursorPos = 0
+            self.cursorPos = 0
 
     def pressDown(self):
         old_cursor = self.cursorPos
