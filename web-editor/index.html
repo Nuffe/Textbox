@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MilkBox web</title>
+<style>
+    :root {
+        --bg: #1b1e24;
+        --paper: #22262e;
+        --ink: #dde3ea;
+        --dim: #6b7480;
+        --milk: #f2ede4;
+        --line-height: 26px;
+    }
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Cascadia Code", "Cascadia Mono", ui-monospace, Consolas, monospace;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    header {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        padding: 10px 18px;
+        border-bottom: 1px solid #2e3440;
+        font-size: 13px;
+    }
+    header .title { color: var(--milk); letter-spacing: 0.08em; }
+    header button {
+        background: none;
+        border: 1px solid var(--dim);
+        border-radius: 3px;
+        color: var(--ink);
+        font: inherit;
+        padding: 2px 10px;
+        cursor: pointer;
+    }
+    header button:hover { border-color: var(--milk); }
+    header .hint { margin-left: auto; color: var(--dim); }
+
+    .editor {
+        position: relative;
+        flex: 1;
+        overflow: auto;
+        padding: 12px 0 12px 56px;   /* left gutter, like your positionX = 50 */
+        outline: none;
+        cursor: text;
+    }
+    .lines {
+        position: relative;
+        font-size: 16px;
+        line-height: var(--line-height);
+        white-space: pre;             /* spaces render literally, no wrapping */
+        min-height: 100%;
+        user-select: none;
+    }
+    .line { 
+        min-height: var(--line-height); 
+        overflow-wrap: break-word;
+        white-space: initial;
+    }
+
+    .cursor {
+        position: absolute;
+        top: 12px;                    /* match .editor padding-top */
+        left: 56px;                   /* match .editor padding-left */
+        width: 2px;
+        background: var(--milk);
+        pointer-events: none;
+        animation: blink 1.06s steps(1) infinite;
+    }
+    .highlight-layer{
+        position: absolute; 
+        pointer-events: none;
+        top: 12px;
+        right: 0px;
+        bottom: 12px;
+        left: 56px;
+    }
+
+    #highlight {
+        background: rgb(248, 255, 49);
+        position: absolute;
+        opacity: 0.2;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+        .cursor { animation: none; }
+    }
+</style>
+</head>
+<body>
+    <header>
+        <span class="title">MILK CRATE</span>
+        <button type="button" data-action="load">Load</button>
+        <button type="button" data-action="save">Save</button>
+        <span class="hint">Ctrl+S save · Ctrl+F load · Ctrl+Z undo · Ctrl+Y redo</span>
+    </header>
+
+    <!-- tabindex makes a plain div focusable so it receives keydown -->
+    <div class="editor" tabindex="0">
+        <div class="highlight-layer"></div>
+        <div class="lines"></div>
+        <div class="cursor"></div>
+    </div>
+
+    <!-- Plain script tags (no ES modules) so double-clicking index.html
+         works from file:// without a local server. Order matters. -->
+    <script src="gap_buffer.js"></script>
+    <script src="linked_list.js"></script>
+    <script src="undo.js"></script>
+    <script src="editor.js"></script>
+</body>
+</html>
+
